@@ -21,5 +21,6 @@
     "illuminate/support": "^5.2",
     "irazasyed/telegram-bot-sdk": "^2.0",
     "illuminate/redis": "^5.2"
-  }
+  },
+  "minimum-stability": "dev"
 }
