@@ -30,6 +30,8 @@ class DialogsServiceProvider extends ServiceProvider
             /** @var Container $app */
             return new Dialogs($app->make('telegram'));
         });
+
+        $this->app->alias(Dialogs::class, 'dialogs');
     }
 
     /**
