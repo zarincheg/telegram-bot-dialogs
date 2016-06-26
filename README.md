@@ -132,3 +132,5 @@ For storing dialog information(also for the data that pushed by the Dialog::reme
 - Refactor for using names in Dialogs::add() instead of objects and rename to start()
 - Add LUIS API support (https://www.luis.ai/)
 - Long-term memory
+- Authorized dialogs for allow access only for allowed users
+- YesNo dialogs out of the box. Making questions and bind yes/no handlers
