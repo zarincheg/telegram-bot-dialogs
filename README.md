@@ -112,6 +112,9 @@ if (!$this->dialogs->exists($update)) {
 ```
 For storing dialog information(also for the data that pushed by the Dialog::remember() method) using Redis.
 
+###Access control with in dialogs
+You can inherit AuthorizedDialog class and put Telegram usernames into $allowedUsers property. After that just for users in the list will be allowed to start the dialog.
+
 ###Available methods of the _Dialog_ class
 
 - `start()` - Start the dialog from the first step
@@ -132,5 +135,4 @@ For storing dialog information(also for the data that pushed by the Dialog::reme
 - Refactor for using names in Dialogs::add() instead of objects and rename to start()
 - Add LUIS API support (https://www.luis.ai/)
 - Long-term memory
-- Authorized dialogs for allow access only for allowed users
 - YesNo dialogs out of the box. Making questions and bind yes/no handlers
