@@ -9,6 +9,7 @@
 
 namespace BotDialogs;
 
+use Exception;
 use Telegram\Bot\Actions;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Update;
@@ -24,6 +25,7 @@ class Dialog
      * @var int Next step
      */
     protected $next = 0;
+    protected $current = 0;
 
     /**
      * @param int $next
@@ -99,16 +101,34 @@ class Dialog
 
     /**
      * @return bool
+     * @throws Exception
+     * @throws \Telegram\Bot\Exceptions\TelegramSDKException
      */
     public function proceed()
     {
+        $this->current = $this->next;
+
         if (!$this->isEnd()) {
             $this->telegram->sendChatAction([
                 'chat_id' => $this->update->getMessage()->getChat()->getId(),
                 'action' => Actions::TYPING
             ]);
 
-            $name = $this->steps[$this->next];
+            $step = $this->steps[$this->current];
+
+            if (is_array($step)) {
+                if (!isset($step['name'])) {
+                    // @todo Replace by the specific exception.
+                    throw new Exception('Dialog step name must be defined.');
+                }
+
+                $name = $step['name'];
+            } elseif(is_string($step)) {
+                $name = $step;
+            } else {
+                throw new Exception('Dialog step is not defined.');
+            }
+
             $this->$name();
             $this->next++;
         }
@@ -179,6 +199,14 @@ class Dialog
     public function __call($name, $args)
     {
         // @todo Add logging
+        if (isset($this->steps[$this->current]['response'])) {
+            $this->telegram->sendMessage([
+                'chat_id' => $this->getChat()->getId(),
+                'text' => $this->steps[$this->current]['response']
+            ]);
+        }
+
+        $this->next++;
 
         return false;
     }
