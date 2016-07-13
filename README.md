@@ -132,6 +132,34 @@ class HelloDialog extends Dialog
 ```
 In this case, if you don't need any logic inside the step handler - you can don't define it. Just put the response inside the step definition. It works good for welcome messages, messages with tips/advices and so on.
 
+Also, you can use `is_dich` (is it a dichotomous question) option of the step. If this option set to true, you can use `yes` and `no` fields of the Dialog instance to check user answer. For example:
+```php
+class HelloDialog extends Dialog
+{
+    protected $steps = [
+        [
+            'name' => 'hello',
+            'response' => 'Hello my friend! Are you OK?'
+        ],
+        [
+            'name' => 'answer',
+            'is_dich' => true
+        ],
+        'bye'
+    ];
+    
+    public function answer()
+    {
+        if ($this->yes) {
+            // Send message "I am fine, thank you!"
+        } elseif ($this->no) {
+            // Send message "No, I am got a sick :("
+        }
+    }
+}
+```
+In the `config/dialogs.php` you can modify aliases for yes/no meanings.
+
 
 ###Access control with in dialogs
 You can inherit AuthorizedDialog class and put Telegram usernames into $allowedUsers property. After that just for users in the list will be allowed to start the dialog.
@@ -152,8 +180,6 @@ You can inherit AuthorizedDialog class and put Telegram usernames into $allowedU
 - `exists(Telegram\Bot\Objects\Update $update)` - Check for existsing dialog
 
 ##What is planned to improve:
-- Add default response messages (if you need just a text answers from the bot, without any background logic)
 - Refactor for using names in Dialogs::add() instead of objects and rename to start()
 - Add LUIS API support (https://www.luis.ai/)
 - Long-term memory
-- YesNo dialogs out of the box. Making questions and bind yes/no handlers
