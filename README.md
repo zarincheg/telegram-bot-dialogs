@@ -112,6 +112,27 @@ if (!$this->dialogs->exists($update)) {
 ```
 For storing dialog information(also for the data that pushed by the Dialog::remember() method) using Redis.
 
+###Advanced definition of the dialog steps
+You can define default text answers for your dialog steps. For this you have to define the step as an array with name and response fields.
+
+```php
+class HelloDialog extends Dialog
+{
+    protected $steps = [
+        [
+            'name' => 'hello',
+            'response' => 'Hello my friend!'
+        ],
+        'fine',
+        'bye'
+    ];
+    
+    // ...
+}
+```
+In this case, if you don't need any logic inside the step handler - you can don't define it. Just put the response inside the step definition. It works good for welcome messages, messages with tips/advices and so on.
+
+
 ###Access control with in dialogs
 You can inherit AuthorizedDialog class and put Telegram usernames into $allowedUsers property. After that just for users in the list will be allowed to start the dialog.
 
