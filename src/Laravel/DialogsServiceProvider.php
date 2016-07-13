@@ -31,6 +31,8 @@ class DialogsServiceProvider extends ServiceProvider
             return new Dialogs($app->make('telegram'));
         });
 
+        $this->mergeConfigFrom(__DIR__.'/config/dialogs.php', 'dialogs');
+
         $this->app->alias(Dialogs::class, 'dialogs');
     }
 

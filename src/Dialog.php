@@ -10,6 +10,7 @@
 namespace BotDialogs;
 
 use Exception;
+use Illuminate\Support\Facades\Config;
 use Telegram\Bot\Actions;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Update;
@@ -26,6 +27,8 @@ class Dialog
      */
     protected $next = 0;
     protected $current = 0;
+    protected $yes = null;
+    protected $no = null;
 
     /**
      * @param int $next
@@ -129,6 +132,23 @@ class Dialog
                 throw new Exception('Dialog step is not defined.');
             }
 
+            // @todo Refactor: Extract method
+            // Flush yes/no state
+            $this->yes = null;
+            $this->no = null;
+
+            if (is_array($step) && isset($step['is_dich']) && $step['is_dich']) {
+                $message = $this->update->getMessage()->getText();
+                $message = mb_strtolower(trim($message));
+                $message = preg_replace('![%#,:&*@_\'\"\\\+\^\(\)\[\]\-\$\!\?\.]+!ui', '', $message);
+
+                if (in_array($message, Config::get('dialogs.aliases.yes'))) {
+                    $this->yes = true;
+                } elseif (in_array($message, Config::get('dialogs.aliases.no'))) {
+                    $this->no = true;
+                }
+            }
+
             $this->$name();
             $this->next++;
         }
@@ -205,8 +225,6 @@ class Dialog
                 'text' => $this->steps[$this->current]['response']
             ]);
         }
-
-        $this->next++;
 
         return false;
     }
