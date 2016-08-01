@@ -150,7 +150,11 @@ class Dialog
             }
 
             $this->$name();
-            $this->next++;
+
+            // Step forward only if did not changes inside the step handler
+            if ($this->next == $this->current) {
+                $this->next++;
+            }
         }
     }
 
@@ -160,10 +164,11 @@ class Dialog
      */
     public function jump($step)
     {
-        $key = array_search($step, $this->steps);
-
-        if (is_integer($key)) {
-            $this->setNext(array_search($step, $this->steps)-1);
+        foreach ($this->steps as $index => $value) {
+            if ((is_array($value) && $value['name'] === $step) || $value === $step) {
+                $this->setNext($index);
+                break;
+            }
         }
     }
 
