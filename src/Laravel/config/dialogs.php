@@ -7,5 +7,9 @@ return [
     'aliases' => [
         'yes' => ['yes', 'yep', 'да', 'ага', 'угу'],
         'no'  => ['no', 'nope', 'нет']
-    ]
+    ],
+    /**
+     * Timeout for dialog memory in seconds
+     */
+    'expires' => 600
 ];
