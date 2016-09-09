@@ -10,7 +10,11 @@
 namespace BotDialogs;
 
 use BotDialogs\Exceptions\DialogException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Parser;
 use Telegram\Bot\Actions;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Update;
@@ -93,6 +97,8 @@ class Dialog
     public function __construct(Update $update)
     {
         $this->update = $update;
+
+        $this->importSteps();
     }
 
 
@@ -277,5 +283,74 @@ class Dialog
         }
 
         return true;
+    }
+
+    public function setSteps($steps)
+    {
+        $this->steps = $steps;
+    }
+
+    /**
+     * Load steps from file (php or yaml formats)
+     *
+     * @param string $path
+     *
+     * @return bool True if steps loaded successfully
+     */
+    public function loadSteps($path)
+    {
+        if (!file_exists($path)) {
+            return false;
+        }
+
+        $cacheKey = 'scenario:' . $path;
+        if (!app()->environment('local', 'staging')) {
+            $steps = Cache::get($cacheKey);
+            if ($steps !== null) {
+                $this->setSteps($steps);
+
+                return true;
+            }
+        }
+
+        $ext = substr($path, strrpos($path, '.') + 1);
+        switch ($ext) {
+            case 'php':
+                $this->setSteps(require $path);
+                break;
+            case 'yml':
+            case 'yaml':
+                $parser = new Parser();
+                try {
+                    $yaml = $parser->parse(file_get_contents($path));
+                    $this->setSteps($yaml);
+                } catch (ParseException $e) {
+                    Log::error('Unable to parse YAML config: ' . $e->getMessage());
+
+                    return false;
+                }
+
+                break;
+            default:
+                return false;
+        }
+
+        if (!app()->environment('local', 'staging')) {
+            Cache::forever($cacheKey, $this->getSteps());
+        }
+
+        return true;
+    }
+
+    protected function importSteps()
+    {
+        if ($scenario = Config::get('dialogs.scenarios.' . static::class)) {
+
+            if (is_array($scenario)) {
+                $this->steps = $scenario;
+            } else {
+                $this->loadSteps($scenario);
+            }
+        }
     }
 }
