@@ -130,7 +130,9 @@ class HelloDialog extends Dialog
     // ...
 }
 ```
-In this case, if you don't need any logic inside the step handler - you can don't define it. Just put the response inside the step definition. It works good for welcome messages, messages with tips/advices and so on.
+In this case, if you don't need any logic inside the step handler - you can don't define it. Just put the response inside the step definition. It works good for welcome messages, messages with tips/advices and so on. If you want format response with markdown, just set `markdown` field to `true`.
+
+Also, you can control dialog direction in step by defining `jump ` and `end` fields. `jump` acts as `jump()` method - dialog jumps to particular step. `end` field, is set to `true`, ends dialog after current step.
 
 Also, you can use `is_dich` (is it a dichotomous question) option of the step. If this option set to true, you can use `yes` and `no` fields of the Dialog instance to check user answer. For example:
 ```php
@@ -160,6 +162,37 @@ class HelloDialog extends Dialog
 ```
 In the `config/dialogs.php` you can modify aliases for yes/no meanings.
 
+Often in dichotomous question you only need to send response and jump to another step. In this case, you can define steps with responses and set their names as values of 'yes', 'no' or 'default' keys of dichotomous step. For example:
+ 
+```php
+class HelloDialog extends Dialog
+{
+    protected $steps = [
+        [
+            'name' => 'hello',
+            'response' => 'Hello my friend! Are you OK?'
+        ],
+        [
+            'name' => 'answer',
+            'is_dich' => true,
+            'yes' => 'fine',
+            'no' => 'sick',
+            'default' => 'bye'
+        ],
+        [
+            'name' => 'fine',
+            'response' => 'I am fine, thank you!',
+            'jump' => 'bye',
+        ],
+        [
+            'name' => 'sick',
+            'response' => 'No, I am got a sick :(',
+        ],
+        'bye'
+    ];
+}
+```
+
 
 ###Access control with in dialogs
 You can inherit AuthorizedDialog class and put Telegram usernames into $allowedUsers property. After that just for users in the list will be allowed to start the dialog.
@@ -178,6 +211,18 @@ You can inherit AuthorizedDialog class and put Telegram usernames into $allowedU
 - `get(Telegram\Bot\Objects\Update $update)` - Returns the dialog object for the existing dialog
 - `proceed(Telegram\Bot\Objects\Update $update)` - Run the next step handler for the existing dialog
 - `exists(Telegram\Bot\Objects\Update $update)` - Check for existsing dialog
+
+###Steps configuration in separate files
+ 
+You can define dialog configuration in separate yaml or php files. To do this, set `scenarios` in dialogs configuration file, using dialog class name as key and path to config file as value, for example:
+
+```php
+'scenarios' => [
+        HelloDialog::class => base_path('config/dialogs/hello.yml')
+],
+```
+
+Configuration from files in production environment stored in default cache instanse. Because of this, you shall add `php artisan cache:clear` to your deployment script.
 
 ##What is planned to improve:
 - Refactor for using names in Dialogs::add() instead of objects and rename to start()
