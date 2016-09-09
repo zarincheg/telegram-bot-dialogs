@@ -141,8 +141,9 @@ class Dialog
             $this->no = null;
 
             if (is_array($step)) {
-                if (isset($step['is_dich']) && $step['is_dich']) {
-                    $this->processYesNo($step);
+                if (isset($step['is_dich']) && $step['is_dich'] && $this->processYesNo($step)) {
+
+                    return;
                 } elseif (!empty($step['jump'])) {
                     $this->jump($step['jump']);
                 }
@@ -159,7 +160,10 @@ class Dialog
 
     /**
      * Process yes-no scenery
+     *
      * @param array $step
+     *
+     * @return bool True if no further procession required (jumped to another step)
      */
     protected function processYesNo(array $step) {
         $message = $this->update->getMessage()->getText();
@@ -171,16 +175,27 @@ class Dialog
 
             if (!empty($step['yes'])) {
                 $this->jump($step['yes']);
+                $this->proceed();
+
+                return true;
             }
         } elseif (in_array($message, Config::get('dialogs.aliases.no'))) {
             $this->no = true;
 
             if (!empty($step['no'])) {
                 $this->jump($step['yes']);
+                $this->proceed();
+
+                return true;
             }
         } elseif (!empty($step['default'])) {
             $this->jump($step['default']);
+            $this->proceed();
+
+            return true;
         }
+
+        return false;
     }
 
     /**
