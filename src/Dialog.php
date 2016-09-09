@@ -9,7 +9,7 @@
 
 namespace BotDialogs;
 
-use Exception;
+use BotDialogs\Exceptions\DialogException;
 use Illuminate\Support\Facades\Config;
 use Telegram\Bot\Actions;
 use Telegram\Bot\Api;
@@ -21,7 +21,7 @@ use Telegram\Bot\Objects\Update;
  */
 class Dialog
 {
-    protected $steps = []; // @todo Add the feature that allow to write response messages inside array for simple "chat-only" dialogs
+    protected $steps = [];
     /**
      * @var int Next step
      */
@@ -103,8 +103,7 @@ class Dialog
     }
 
     /**
-     * @return bool
-     * @throws Exception
+     * @throws DialogException
      * @throws \Telegram\Bot\Exceptions\TelegramSDKException
      */
     public function proceed()
@@ -121,40 +120,60 @@ class Dialog
 
             if (is_array($step)) {
                 if (!isset($step['name'])) {
-                    // @todo Replace by the specific exception.
-                    throw new Exception('Dialog step name must be defined.');
+                    throw new DialogException('Dialog step name must be defined.');
                 }
 
                 $name = $step['name'];
-            } elseif(is_string($step)) {
+            } elseif (is_string($step)) {
                 $name = $step;
             } else {
-                throw new Exception('Dialog step is not defined.');
+                throw new DialogException('Dialog step is not defined.');
             }
 
-            // @todo Refactor: Extract method
             // Flush yes/no state
             $this->yes = null;
             $this->no = null;
 
-            if (is_array($step) && isset($step['is_dich']) && $step['is_dich']) {
-                $message = $this->update->getMessage()->getText();
-                $message = mb_strtolower(trim($message));
-                $message = preg_replace('![%#,:&*@_\'\"\\\+\^\(\)\[\]\-\$\!\?\.]+!ui', '', $message);
-
-                if (in_array($message, Config::get('dialogs.aliases.yes'))) {
-                    $this->yes = true;
-                } elseif (in_array($message, Config::get('dialogs.aliases.no'))) {
-                    $this->no = true;
+            if (is_array($step)) {
+                if (isset($step['is_dich']) && $step['is_dich']) {
+                    $this->processYesNo($step);
+                } elseif (!empty($step['jump'])) {
+                    $this->jump($step['jump']);
                 }
             }
 
-            $this->$name();
+            $this->$name($step);
 
             // Step forward only if did not changes inside the step handler
             if ($this->next == $this->current) {
                 $this->next++;
             }
+        }
+    }
+
+    /**
+     * Process yes-no scenery
+     * @param array $step
+     */
+    protected function processYesNo(array $step) {
+        $message = $this->update->getMessage()->getText();
+        $message = mb_strtolower(trim($message));
+        $message = preg_replace('![%#,:&*@_\'\"\\\+\^\(\)\[\]\-\$\!\?\.]+!ui', '', $message);
+
+        if (in_array($message, Config::get('dialogs.aliases.yes'))) {
+            $this->yes = true;
+
+            if (!empty($step['yes'])) {
+                $this->jump($step['yes']);
+            }
+        } elseif (in_array($message, Config::get('dialogs.aliases.no'))) {
+            $this->no = true;
+
+            if (!empty($step['no'])) {
+                $this->jump($step['yes']);
+            }
+        } elseif (!empty($step['default'])) {
+            $this->jump($step['default']);
         }
     }
 
@@ -217,20 +236,46 @@ class Dialog
     }
 
     /**
-     * @param $name
-     * @param $args
+     * @param string $name
+     * @param array $args
+     *
      * @return bool
+     * @throws DialogException
      */
-    public function __call($name, $args)
+    public function __call($name, array $args)
     {
-        // @todo Add logging
-        if (isset($this->steps[$this->current]['response'])) {
-            $this->telegram->sendMessage([
-                'chat_id' => $this->getChat()->getId(),
-                'text' => $this->steps[$this->current]['response']
-            ]);
+        if (count($args) === 0) {
+            return false;
         }
 
-        return false;
+        $step = $args[0];
+
+        if (!is_array($step)) {
+            throw new DialogException('For string steps method must be defined.');
+        }
+
+        // @todo Add logging
+        if (isset($step['response'])) {
+            $params = [
+                'chat_id' => $this->getChat()->getId(),
+                'text'    => $step['response']
+            ];
+
+            if (isset($step['markdown']) && $step['markdown']) {
+                $params['parse_mode'] = 'Markdown';
+            }
+
+            $this->telegram->sendMessage($params);
+        }
+
+        if (!empty($step['jump'])) {
+            $this->jump($step['jump']);
+        }
+
+        if (isset($step['end']) && $step['end']) {
+            $this->end();
+        }
+
+        return true;
     }
 }
