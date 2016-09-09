@@ -183,7 +183,7 @@ class Dialog
             $this->no = true;
 
             if (!empty($step['no'])) {
-                $this->jump($step['yes']);
+                $this->jump($step['no']);
                 $this->proceed();
 
                 return true;
