@@ -11,8 +11,6 @@ namespace BotDialogs;
 
 use BotDialogs\Exceptions\DialogException;
 
-use Illuminate\Support\Facades\Log;
-
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
 
@@ -344,7 +342,7 @@ class Dialog
                     $yaml = $parser->parse(file_get_contents($path));
                     $this->setSteps($yaml);
                 } catch (ParseException $e) {
-                    Log::error('Unable to parse YAML config: ' . $e->getMessage());
+                    error_log('Unable to parse YAML config: ' . $e->getMessage());
 
                     return false;
                 }
