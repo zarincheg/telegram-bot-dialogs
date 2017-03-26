@@ -11,8 +11,6 @@ namespace BotDialogs;
 
 use BotDialogs\Exceptions\DialogException;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -329,18 +327,9 @@ class Dialog
      */
     public function loadSteps($path)
     {
+        // @todo Have to implement scenario caching (Independent from Laravel)
         if (!file_exists($path)) {
             return false;
-        }
-
-        $cacheKey = 'scenario:' . $path;
-        if (!app()->environment('local', 'staging')) {
-            $steps = Cache::get($cacheKey);
-            if ($steps !== null) {
-                $this->setSteps($steps);
-
-                return true;
-            }
         }
 
         $ext = substr($path, strrpos($path, '.') + 1);
@@ -363,10 +352,6 @@ class Dialog
                 break;
             default:
                 return false;
-        }
-
-        if (!app()->environment('local', 'staging')) {
-            Cache::forever($cacheKey, $this->getSteps());
         }
 
         return true;
