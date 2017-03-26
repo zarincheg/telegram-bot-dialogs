@@ -213,7 +213,8 @@ class Dialog
     }
 
     /**
-     * @todo Maybe the better way is that to return true/false from step-methods. And if it returns false - it means end of dialog
+     * @todo Maybe the better way is that to return true/false from step-methods.
+     * @todo ...And if it returns false - it means end of dialog
      */
     public function end()
     {
@@ -300,6 +301,9 @@ class Dialog
         return true;
     }
 
+    /**
+     * @param $steps
+     */
     public function setSteps($steps)
     {
         $this->steps = $steps;
@@ -359,8 +363,9 @@ class Dialog
 
     protected function importSteps()
     {
-        if ($scenario = Config::get('dialogs.scenarios.' . static::class)) {
+        $scenario = Config::get('dialogs.scenarios.' . static::class);
 
+        if ($scenario) {
             if (is_array($scenario)) {
                 $this->steps = $scenario;
             } else {

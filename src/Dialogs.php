@@ -9,7 +9,7 @@
 
 namespace BotDialogs;
 
-use Illuminate\Redis\Database as Redis;
+use Illuminate\Redis\RedisManager as Redis;
 use Illuminate\Support\Facades\Config;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Update;
@@ -50,7 +50,8 @@ class Dialogs
         // save new dialog
         $chatId = $dialog->getChat()->getId();
         $this->setField($chatId, 'next', $dialog->getNext());
-        $this->setField($chatId, 'dialog', get_class($dialog)); // @todo It's not safe. Need to define Dialogs registry with check of bindings
+        $this->setField($chatId, 'dialog', get_class($dialog));
+        // @todo It's not safe. Need to define Dialogs registry with check of bindings
 
         return $dialog;
     }
