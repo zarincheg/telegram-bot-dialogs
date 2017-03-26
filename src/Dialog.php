@@ -10,11 +10,14 @@
 namespace BotDialogs;
 
 use BotDialogs\Exceptions\DialogException;
+
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
+
 use Telegram\Bot\Actions;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Update;
@@ -93,12 +96,16 @@ class Dialog
 
     /**
      * @param Update $update
+     * @param bool $autoimport
      */
-    public function __construct(Update $update)
+    public function __construct(Update $update, bool $autoimport = false)
     {
         $this->update = $update;
 
-        $this->importSteps();
+        //@todo Move this call for using directly. Have to be decoupled with Laravel components.
+        if ($autoimport) {
+            $this->importSteps();
+        }
     }
 
 
@@ -142,7 +149,6 @@ class Dialog
 
             if (is_array($step)) {
                 if (isset($step['is_dich']) && $step['is_dich'] && $this->processYesNo($step)) {
-
                     return;
                 } elseif (!empty($step['jump'])) {
                     $this->jump($step['jump']);
@@ -165,7 +171,8 @@ class Dialog
      *
      * @return bool True if no further procession required (jumped to another step)
      */
-    protected function processYesNo(array $step) {
+    protected function processYesNo(array $step)
+    {
         $message = $this->update->getMessage()->getText();
         $message = mb_strtolower(trim($message));
         $message = preg_replace('![%#,:&*@_\'\"\\\+\^\(\)\[\]\-\$\!\?\.]+!ui', '', $message);
@@ -363,14 +370,10 @@ class Dialog
 
     protected function importSteps()
     {
-        $scenario = Config::get('dialogs.scenarios.' . static::class);
-
-        if ($scenario) {
-            if (is_array($scenario)) {
-                $this->steps = $scenario;
-            } else {
-                $this->loadSteps($scenario);
-            }
+        // @todo Add file path argument to the method. Merge loadSteps and importSteps.
+        // @todo Add config checks with scenario path optionally.
+        if (is_string($this->steps) && !empty($this->steps) && is_file($this->steps)) {
+            $this->loadSteps($this->steps);
         }
     }
 }
