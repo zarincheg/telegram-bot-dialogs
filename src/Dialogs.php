@@ -10,7 +10,6 @@
 namespace BotDialogs;
 
 use Illuminate\Redis\RedisManager as Redis;
-use Illuminate\Support\Facades\Config;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Update;
 

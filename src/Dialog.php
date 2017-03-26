@@ -36,6 +36,10 @@ class Dialog
     protected $current = 0;
     protected $yes = null;
     protected $no = null;
+    protected $aliases = [
+        'yes' => ['yes'],
+        'no' => ['no']
+    ];
 
     /**
      * @param int $next
@@ -177,7 +181,7 @@ class Dialog
         $message = mb_strtolower(trim($message));
         $message = preg_replace('![%#,:&*@_\'\"\\\+\^\(\)\[\]\-\$\!\?\.]+!ui', '', $message);
 
-        if (in_array($message, Config::get('dialogs.aliases.yes'))) {
+        if (in_array($message, $this->aliases['yes'])) {
             $this->yes = true;
 
             if (!empty($step['yes'])) {
@@ -186,7 +190,7 @@ class Dialog
 
                 return true;
             }
-        } elseif (in_array($message, Config::get('dialogs.aliases.no'))) {
+        } elseif (in_array($message, $this->aliases['no'])) {
             $this->no = true;
 
             if (!empty($step['no'])) {
