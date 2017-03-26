@@ -129,7 +129,8 @@ class Dialogs
         $redis->multi();
 
         $redis->hset($key, $field, $value);
-        $redis->expire($key, Config::get('dialogs.expires'));
+        // @todo Move to config/settings
+        $redis->expire($key, 300);
 
         $redis->exec();
     }
