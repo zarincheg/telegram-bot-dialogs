@@ -20,8 +20,8 @@
     "php": ">=5.5.9",
     "illuminate/support": "^5.2",
     "irazasyed/telegram-bot-sdk": "^2.0",
-    "illuminate/redis": "^5.2",
-    "symfony/yaml": "3.*"
+    "symfony/yaml": "3.*",
+    "predis/predis": "~1.0"
   },
   "minimum-stability": "dev"
 }
