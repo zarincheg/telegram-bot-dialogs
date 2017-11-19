@@ -123,45 +123,45 @@ class Dialog
     {
         $this->current = $this->next;
 
-        if (!$this->isEnd()) {
-            $this->telegram->sendChatAction([
-                'chat_id' => $this->update->getMessage()->getChat()->getId(),
-                'action' => Actions::TYPING
-            ]);
+        if ($this->isEnd()) { return;}
+        $this->telegram->sendChatAction([
+            'chat_id' => $this->update->getMessage()->getChat()->getId(),
+            'action' => Actions::TYPING
+        ]);
 
-            $step = $this->steps[$this->current];
+        $step = $this->steps[$this->current];
 
-            if (is_array($step)) {
-                if (!isset($step['name'])) {
-                    throw new DialogException('Dialog step name must be defined.');
-                }
-
-                $name = $step['name'];
-            } elseif (is_string($step)) {
-                $name = $step;
-            } else {
-                throw new DialogException('Dialog step is not defined.');
+        if (is_array($step)) {
+            if (!isset($step['name'])) {
+                throw new DialogException('Dialog step name must be defined.');
             }
 
-            // Flush yes/no state
-            $this->yes = null;
-            $this->no = null;
+            $name = $step['name'];
+        } elseif (is_string($step)) {
+            $name = $step;
+        } else {
+            throw new DialogException('Dialog step is not defined.');
+        }
 
-            if (is_array($step)) {
-                if (isset($step['is_dich']) && $step['is_dich'] && $this->processYesNo($step)) {
-                    return;
-                } elseif (!empty($step['jump'])) {
-                    $this->jump($step['jump']);
-                }
-            }
+        // Flush yes/no state
+        $this->yes = null;
+        $this->no = null;
 
-            $this->$name($step);
-
-            // Step forward only if did not changes inside the step handler
-            if ($this->next == $this->current) {
-                $this->next++;
+        if (is_array($step)) {
+            if (isset($step['is_dich']) && $step['is_dich'] && $this->processYesNo($step)) {
+                return;
+            } elseif (!empty($step['jump'])) {
+                $this->jump($step['jump']);
             }
         }
+
+        $this->$name($step);
+
+        // Step forward only if did not changes inside the step handler
+        if ($this->next == $this->current) {
+            $this->next++;
+        }
+
     }
 
     /**
