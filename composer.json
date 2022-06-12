@@ -23,5 +23,15 @@
     "symfony/yaml": "3.*",
     "predis/predis": "~1.0"
   },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "BotDialogs\\Laravel\\DialogsServiceProvider"
+      ]
+    }
+  },
   "minimum-stability": "dev"
 }
