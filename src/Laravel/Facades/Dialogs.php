@@ -1,29 +1,15 @@
-<?php
-/**
- * Created by Kirill Zorin <zarincheg@gmail.com>
- * Personal website: http://libdev.ru
- * at
- *
- * Date: 18.06.2016
- * Time: 17:07
- */
-namespace BotDialogs\Laravel\Facades;
+<?php declare(strict_types=1);
+
+namespace KootLabs\TelegramBotDialogs\Laravel\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-/**
- * Class Dialogs
- * @package BotDialogs\Laravel\Facades
- */
-class Dialogs extends Facade
+/** @mixin \KootLabs\TelegramBotDialogs\Dialogs */
+final class Dialogs extends Facade
 {
-    /**
-     * Get the registered name of the component.
-     *
-     * @return string
-     */
-    protected static function getFacadeAccessor()
+    /** Get the registered name of the component. */
+    protected static function getFacadeAccessor(): string
     {
-        return 'dialogs';
+        return 'telegram.dialogs';
     }
 }

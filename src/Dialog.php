@@ -1,132 +1,85 @@
-<?php
-/**
- * Created by Kirill Zorin <zarincheg@gmail.com>
- * Personal website: http://libdev.ru
- *
- * Date: 12.06.2016
- * Time: 16:47
- */
+<?php declare(strict_types=1);
 
-namespace BotDialogs;
+namespace KootLabs\TelegramBotDialogs;
 
-use BotDialogs\Exceptions\DialogException;
-
-use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Parser;
-
+use KootLabs\TelegramBotDialogs\Exceptions\DialogException;
 use Telegram\Bot\Actions;
 use Telegram\Bot\Api;
+use Telegram\Bot\Objects\Chat;
 use Telegram\Bot\Objects\Update;
 
-/**
- * Class Dialog
- * @package BotDialogs
- */
-class Dialog
+abstract class Dialog
 {
-    protected $steps = [];
-    /**
-     * @var int Next step
-     */
-    protected $next = 0;
-    protected $current = 0;
-    protected $yes = null;
-    protected $no = null;
-    protected $aliases = [
-        'yes' => ['yes'],
-        'no' => ['no']
-    ];
+    protected Api $telegram;
+    protected Update $update;
+    protected array $memory = [];
 
-    /**
-     * @param int $next
-     */
-    public function setNext($next)
+    /** Seconds to store state of the dialog after latest activity on it. */
+    protected int $ttl = 300;
+
+    /** @var list<string|array<array-key, string|bool>> */
+    protected array $steps = [];
+
+    protected int $next = 0;
+    protected int $current = 0;
+
+    public function __construct(Update $update)
     {
-        $this->next = $next;
+        $this->update = $update;
     }
 
-    /**
-     * @return array
-     */
-    public function getSteps()
+    /** @param int|numeric-string $next */
+    final public function setNext(int | string $next): void
     {
-        return $this->steps;
+        if (! is_numeric($next)) {
+            throw new \RuntimeException("Unexpected Next value: $next; type: ".get_debug_type($next));
+        }
+        $this->next = (int) $next;
     }
 
-    /**
-     * @return int
-     */
-    public function getNext()
+    final public function getNext(): int
     {
         return $this->next;
     }
-    /**
-     * @var Api
-     */
-    protected $telegram;
 
-    /**
-     * @param Api $telegram
-     */
-    public function setTelegram(Api $telegram)
+    final public function setTelegram(Api $telegram): void
     {
         $this->telegram = $telegram;
     }
-    /**
-     * @var Update
-     */
-    protected $update;
-    protected $memory = '';
 
-    /**
-     * @param string $memory
-     */
-    public function setMemory($memory)
+    /** @param array<string, mixed> $memory */
+    final public function setMemory(array $memory): void
     {
         $this->memory = $memory;
     }
 
-    /**
-     * @return string
-     */
-    public function getMemory()
+    /** @return array<string, mixed> */
+    final public function getMemory(): array
     {
         return $this->memory;
     }
 
-    /**
-     * @param Update $update
-     * @param bool $autoimport
-     */
-    public function __construct(Update $update, bool $autoimport = false)
-    {
-        $this->update = $update;
-
-        //@todo Move this call for using directly. Have to be decoupled with Laravel components.
-        if ($autoimport) {
-            $this->importSteps();
-        }
-    }
-
-
-    public function start()
+    /** Start dialog from the begging. */
+    final public function start(): void
     {
         $this->next = 0;
         $this->proceed();
     }
 
     /**
-     * @throws DialogException
+     * @throws \KootLabs\TelegramBotDialogs\Exceptions\DialogException
      * @throws \Telegram\Bot\Exceptions\TelegramSDKException
      */
-    public function proceed()
+    final public function proceed(): void
     {
         $this->current = $this->next;
 
-        if ($this->isEnd()) { return;}
+        if ($this->isEnd()) {
+            return;
+        }
         $this->telegram->sendChatAction([
             'chat_id' => $this->update->getMessage()->getChat()->getId(),
-            'action' => Actions::TYPING
+            'action' => Actions::TYPING,
         ]);
 
         $step = $this->steps[$this->current];
@@ -136,83 +89,46 @@ class Dialog
                 throw new DialogException('Dialog step name must be defined.');
             }
 
-            $name = $step['name'];
+            $stepName = $step['name'];
         } elseif (is_string($step)) {
-            $name = $step;
+            $stepName = $step;
         } else {
             throw new DialogException('Dialog step is not defined.');
         }
 
-        // Flush yes/no state
-        $this->yes = null;
-        $this->no = null;
-
         if (is_array($step)) {
-            if (isset($step['is_dich']) && $step['is_dich'] && $this->processYesNo($step)) {
+            if ($this instanceof DichotomousDialog) {
+                // Flush yes/no state
+                $this->yes = null;
+                $this->no = null;
+            }
+
+            if ($this instanceof DichotomousDialog && isset($step['is_dichotomous']) && $step['is_dichotomous'] && $this->processYesNo($step)) {
                 return;
-            } elseif (!empty($step['jump'])) {
+            }
+
+            if (!empty($step['jump'])) {
                 $this->jump($step['jump']);
             }
         }
 
-        $this->$name($step);
+        if (! method_exists($this, $stepName)) {
+            throw new \RuntimeException("Method “{$stepName}” is not available at the Dialog ".$this::class);
+        }
+
+        $this->$stepName($step);
 
         // Step forward only if did not changes inside the step handler
-        if ($this->next == $this->current) {
-            $this->next++;
+        if ($this->next === $this->current) {
+            ++$this->next;
         }
-
     }
 
-    /**
-     * Process yes-no scenery
-     *
-     * @param array $step
-     *
-     * @return bool True if no further procession required (jumped to another step)
-     */
-    protected function processYesNo(array $step)
-    {
-        $message = $this->update->getMessage()->getText();
-        $message = mb_strtolower(trim($message));
-        $message = preg_replace('![%#,:&*@_\'\"\\\+\^\(\)\[\]\-\$\!\?\.]+!ui', '', $message);
-
-        if (in_array($message, $this->aliases['yes'])) {
-            $this->yes = true;
-
-            if (!empty($step['yes'])) {
-                $this->jump($step['yes']);
-                $this->proceed();
-
-                return true;
-            }
-        } elseif (in_array($message, $this->aliases['no'])) {
-            $this->no = true;
-
-            if (!empty($step['no'])) {
-                $this->jump($step['no']);
-                $this->proceed();
-
-                return true;
-            }
-        } elseif (!empty($step['default'])) {
-            $this->jump($step['default']);
-            $this->proceed();
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Jump to the particular step of the dialog
-     * @param $step
-     */
-    public function jump($step)
+    /** Jump to the particular step of the dialog */
+    final public function jump(string $step): void
     {
         foreach ($this->steps as $index => $value) {
-            if ((is_array($value) && $value['name'] === $step) || $value === $step) {
+            if ($value === $step || (is_array($value) && $value['name'] === $step)) {
                 $this->setNext($index);
                 break;
             }
@@ -223,55 +139,34 @@ class Dialog
      * @todo Maybe the better way is that to return true/false from step-methods.
      * @todo ...And if it returns false - it means end of dialog
      */
-    public function end()
+    final public function end(): void
     {
         $this->next = count($this->steps);
     }
 
-    /**
-     * Remember information for the next step usage. It works with Dialogs management class that store data to Redis.
-     * @param $value
-     * @return mixed
-     */
-    public function remember($value = '')
+    /** Remember information for next steps. */
+    final public function remember(string $key, mixed $value): void
     {
-        if (!$value && $this->memory !== '') {
-            return json_decode($this->memory);
-        }
-
-        $this->memory = json_encode($value);
+        $this->memory[$key] = $value;
     }
 
-    /**
-     * Check if dialog ended
-     * @return bool
-     */
-    public function isEnd()
+    /** Check if dialog ended */
+    final public function isEnd(): bool
     {
-        if ($this->next >= count($this->steps)) {
-            return true;
-        }
-
-        return false;
+        return $this->next >= count($this->steps);
     }
 
-    /**
-     * Returns Telegram chat object
-     * @return \Telegram\Bot\Objects\Chat
-     */
-    public function getChat()
+    /** Returns Telegram Chat */
+    final public function getChat(): Chat
     {
         return $this->update->getMessage()->getChat();
     }
 
     /**
-     * @param string $name
-     * @param array $args
-     *
      * @return bool
-     * @throws DialogException
+     * @throws \KootLabs\TelegramBotDialogs\Exceptions\DialogException
      */
-    public function __call($name, array $args)
+    public function __call(string $name, array $args)
     {
         if (count($args) === 0) {
             return false;
@@ -287,7 +182,7 @@ class Dialog
         if (isset($step['response'])) {
             $params = [
                 'chat_id' => $this->getChat()->getId(),
-                'text'    => $step['response']
+                'text' => $step['response'],
             ];
 
             if (isset($step['markdown']) && $step['markdown']) {
@@ -308,59 +203,8 @@ class Dialog
         return true;
     }
 
-    /**
-     * @param $steps
-     */
-    public function setSteps($steps)
+    final public function ttl(): int
     {
-        $this->steps = $steps;
-    }
-
-    /**
-     * Load steps from file (php or yaml formats)
-     *
-     * @param string $path
-     *
-     * @return bool True if steps loaded successfully
-     */
-    public function loadSteps($path)
-    {
-        // @todo Have to implement scenario caching (Independent from Laravel)
-        if (!file_exists($path)) {
-            return false;
-        }
-
-        $ext = substr($path, strrpos($path, '.') + 1);
-        switch ($ext) {
-            case 'php':
-                $this->setSteps(require $path);
-                break;
-            case 'yml':
-            case 'yaml':
-                $parser = new Parser();
-                try {
-                    $yaml = $parser->parse(file_get_contents($path));
-                    $this->setSteps($yaml);
-                } catch (ParseException $e) {
-                    error_log('Unable to parse YAML config: ' . $e->getMessage());
-
-                    return false;
-                }
-
-                break;
-            default:
-                return false;
-        }
-
-        return true;
-    }
-
-    protected function importSteps()
-    {
-        // @todo Add file path argument to the method. Merge loadSteps and importSteps.
-        // @todo Add config checks with scenario path optionally.
-        if (is_string($this->steps) && !empty($this->steps) && is_file($this->steps)) {
-            $this->loadSteps($this->steps);
-        }
+        return $this->ttl;
     }
 }

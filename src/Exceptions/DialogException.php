@@ -1,10 +1,7 @@
-<?php
-namespace BotDialogs\Exceptions;
+<?php declare(strict_types=1);
 
-/**
- * Class DialogException
- * @package BotDialogs\Exceptions
- */
+namespace KootLabs\TelegramBotDialogs\Exceptions;
+
 class DialogException extends \Exception
 {
 

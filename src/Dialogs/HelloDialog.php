@@ -1,46 +1,44 @@
-<?php
-/**
- * Created by Kirill Zorin <zarincheg@gmail.com>
- * Personal website: http://libdev.ru
- *
- * Date: 13.06.2016
- * Time: 14:53
- */
+<?php declare(strict_types=1);
 
-namespace BotDialogs\Dialogs;
+namespace KootLabs\TelegramBotDialogs\Dialogs;
 
-use BotDialogs\Dialog;
+use KootLabs\TelegramBotDialogs\Dialog;
 
-/**
- * Class HelloDialog
- * @package GreenzoBot\Telegram\Dialogs
- */
-class HelloDialog extends Dialog
+/** An example of Dialog class for demo purposes. */
+final class HelloDialog extends Dialog
 {
-    protected $steps = ['hello', 'fine', 'bye'];
+    protected array $steps = ['hello', 'fine', 'bye'];
 
-    public function hello()
+    public function hello(): void
     {
         $this->telegram->sendMessage([
             'chat_id' => $this->getChat()->getId(),
-            'text' => 'Hello! How are you?'
+            'text' => 'Hello! How are you?',
         ]);
     }
 
-    public function bye()
+    public function fine(): void
     {
         $this->telegram->sendMessage([
             'chat_id' => $this->getChat()->getId(),
-            'text' => 'Bye!'
+            'text' => "I'm OK :)",
         ]);
-        $this->jump('hello');
     }
 
-    public function fine()
+    public function bye(): void
     {
         $this->telegram->sendMessage([
             'chat_id' => $this->getChat()->getId(),
-            'text' => 'I\'m OK :)'
+            'text' => 'Bye!',
         ]);
+
+        if ($this->update->message->text === 'again') {
+            $this->telegram->sendMessage([
+                'chat_id' => $this->getChat()->getId(),
+                'text' => 'OK, one more time ;)',
+            ]);
+
+            $this->jump('hello');
+        }
     }
 }
