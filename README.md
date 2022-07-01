@@ -1,13 +1,16 @@
-# telegram-bot-dialogs
+# Dialogs plugin for Telegram Bot API PHP SDK
+
 The extension for [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk) v3+ that allows to implement dialogs for telegram bots.
+
 
 ## About this fork
 
-The goal of the fork is to maintain the package compatible with the latest [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk), PHP 8+ and Laravel features, focus on stability, better DX and readability.
-
+The goal of the fork is to maintain the package compatible with the latest [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk),
+PHP 8+ and Laravel features, focus on stability, better DX and readability.
 
 
 ## Installation
+
 You can easily install the package using Composer:
 
 ```shell
@@ -22,10 +25,9 @@ Each dialog should be implemented as class that extends basic Dialog as you can 
 ```php
 use KootLabs\TelegramBotDialogs\Dialog;
 
-class HelloDialog extends Dialog
+final class HelloDialog extends Dialog
 {
-    // Array with methods that contains logic of dialog steps.
-    // The order in this array defines the sequence of execution.
+    // List of method to execute. The order defines the sequence.
     protected array $steps = ['hello', 'fine', 'bye'];
 
     public function hello()
@@ -62,7 +64,7 @@ use App\Dialogs\HelloDialog;
 use KootLabs\TelegramBotDialogs\Laravel\Facades\Dialogs;
 use Telegram\Bot\Commands\Command;
 
-class HelloCommand extends Command
+final class HelloCommand extends Command
 {
     /** @var string Command name */
     protected $name = 'hello';
@@ -76,127 +78,48 @@ class HelloCommand extends Command
     }
 }
 ```
-And code in the webhook controller
+
+And process request inside your Laravel webhook controller:
 ```php
 use Telegram\Bot\Api;
 use KootLabs\TelegramBotDialogs\Dialogs;
 
-// ...
-
-public function __construct(Api $telegram, Dialogs $dialogs)
+final class TelegramWebhookController
 {
-  $this->telegram = $telegram;
-  $this->dialogs = $dialogs;
-}
-    
-// ...
-    
-$update = $this->telegram->commandsHandler(true);
-
-if (!$this->dialogs->exists($update)) {
-  // Do something if there are no existing dialogs
-} else {
-  // Call the next step of the dialog
-  $this->dialogs->proceed($update);
-}
-```
-For storing dialog information(also for the data that pushed by the Dialog::remember() method) using Redis.
-
-### Advanced definition of the dialog steps
-You can define default text answers for your dialog steps. For this you have to define the step as an array with name and response fields.
-
-```php
-class HelloDialog extends Dialog
-{
-    protected array $steps = [
-        [
-            'name' => 'hello',
-            'response' => 'Hello my friend!'
-        ],
-        'fine',
-        'bye',
-    ];
-    
-    // ...
-}
-```
-In this case, if you don't need any logic inside the step handler - you can don't define it. Just put the response inside the step definition. It works good for welcome messages, messages with tips/advices and so on. If you want format response with markdown, just set `markdown` field to `true`.
-
-Also, you can control dialog direction in step by defining `jump ` and `end` fields. `jump` acts as `jump()` method - dialog jumps to particular step. `end` field, is set to `true`, ends dialog after current step.
-
-Also, you can use `is_dichotomous` option of the step. If this option set to true, you can use `yes` and `no` fields of the Dialog instance to check user answer. For example:
-```php
-class HelloDialog extends Dialog
-{
-    protected array $steps = [
-        [
-            'name' => 'hello',
-            'response' => 'Hello my friend! Are you OK?',
-        ],
-        [
-            'name' => 'answer',
-            'is_dichotomous' => true,
-        ],
-        'bye',
-    ];
-
-    public function answer()
+    public function handle(Api $telegram, Dialogs $dialogs): void
     {
-        if ($this->yes) {
-            // Send message "I am fine, thank you!"
-        } elseif ($this->no) {
-            // Send message "No, I am got a sick :("
-        }
+        $update = $telegram->commandsHandler(true);
+
+        $dialogs->exists($update)
+            ? $dialogs->proceed($update)
+            : $botsManager->bot('your-bot-name')->sendMessage([
+                'chat_id' => $update->getChat()->id,
+                'text' => 'There is no open dialog',
+            ]);
     }
 }
 ```
-In the `config/dialogs.php` you can modify aliases for yes/no meanings.
-
-Often in dichotomous question you only need to send response and jump to another step. In this case, you can define steps with responses and set their names as values of 'yes', 'no' or 'default' keys of dichotomous step. For example:
- 
-```php
-class HelloDialog extends Dialog
-{
-    protected array $steps = [
-        [
-            'name' => 'hello',
-            'response' => 'Hello my friend! Are you OK?',
-        ],
-        [
-            'name' => 'answer',
-            'is_dichotomous' => true,
-            'yes' => 'fine',
-            'no' => 'sick',
-            'default' => 'bye',
-        ],
-        [
-            'name' => 'fine',
-            'response' => 'I am fine, thank you!',
-            'jump' => 'bye',
-        ],
-        [
-            'name' => 'sick',
-            'response' => 'No, I am got a sick :(',
-        ],
-        'bye',
-    ];
-}
-```
+For storing dialog information (also for the data that pushed by the `Dialog::remember()` method) using Redis.
 
 
 ### Access control with in dialogs
-You can inherit AuthorizedDialog class and put Telegram usernames into $allowedUsers property. After that just for users in the list will be allowed to start the dialog.
+
+You can inherit AuthorizedDialog class and put Telegram usernames into `$allowedUsers` property.
+After that just for users in the list will be allowed to start the dialog.
+
 
 ### Available methods of the _Dialog_ class
 
 - `start()` - Start the dialog from the first step
 - `proceed()` - Proceed the dialog to the next step
 - `end()` - End dialog
-- `jump($step)` - Jump to the particular step
-- `remember($value)` - Remember some information for the next step usage (For now just a "short" memory works, just for one step)
+- `jump($step)` - Jump to the particular step, where `$step` is the method name (method must have `public` visibility)
+- `remember(string $key, mixed $value)` - Remember key-value for next steps. It will available in `Dialog::$memory` array.
 - `isEnd()` - Check the end of the dialog
 
+
 ### Available methods of the _Dialogs_ class
+
 - `add(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Add the new dialog
 - `get(\Telegram\Bot\Objects\Update $update)` - Returns the dialog object for the existing dialog
 - `proceed(\Telegram\Bot\Objects\Update $update)` - Run the next step handler for the existing dialog
@@ -204,6 +127,9 @@ You can inherit AuthorizedDialog class and put Telegram usernames into $allowedU
 
 
 ## ToDo
+
 - Add tests
 - Refactor for using names in Dialogs::add() instead of objects and rename to start()
 - Add AI API support (e.g. [LUIS](https://www.luis.ai/), [Dataflow](https://cloud.google.com/dataflow))
+- Make package fully Laravel-independent
+- Improve documentation and examples
