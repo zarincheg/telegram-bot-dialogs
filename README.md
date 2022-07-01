@@ -3,7 +3,7 @@ The extension for [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegr
 
 ## About this fork
 
-The goal of the fork is to maintain the package compatibale with latest [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk), PHP 8+ and Laravel features, focus on stability, better DX and readability.
+The goal of the fork is to maintain the package compatible with the latest [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk), PHP 8+ and Laravel features, focus on stability, better DX and readability.
 
 
 
@@ -32,7 +32,7 @@ class HelloDialog extends Dialog
     {
         $this->telegram->sendMessage([
             'chat_id' => $this->getChat()->getId(),
-            'text' => 'Hello! How are you?'
+            'text' => 'Hello! How are you?',
         ]);
     }
 
@@ -40,7 +40,7 @@ class HelloDialog extends Dialog
     {
         $this->telegram->sendMessage([
             'chat_id' => $this->getChat()->getId(),
-            'text' => "I'm OK :)"
+            'text' => "I'm OK :)",
         ]);
     }
 
@@ -48,7 +48,7 @@ class HelloDialog extends Dialog
     {
         $this->telegram->sendMessage([
             'chat_id' => $this->getChat()->getId(),
-            'text' => 'Bye!'
+            'text' => 'Bye!',
         ]);
         $this->jump('hello');
     }
