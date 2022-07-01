@@ -96,11 +96,12 @@ Process request inside your Laravel webhook controller:
 
 ```php
 use Telegram\Bot\Api;
+use Telegram\Bot\BotsManager;
 use KootLabs\TelegramBotDialogs\Dialogs;
 
 final class TelegramWebhookController
 {
-    public function handle(Api $telegram, Dialogs $dialogs): void
+    public function handle(Api $telegram, Dialogs $dialogs, BotsManager $botsManager): void
     {
         $update = $telegram->commandsHandler(true);
 
@@ -113,17 +114,15 @@ final class TelegramWebhookController
     }
 }
 ```
-For storing dialog information (also for the data that pushed by the `Dialog::remember()` method) using Redis.
-
 
 ### Available methods of the _Dialog_ class
 
 - `start()` - Start the dialog from the first step
 - `proceed()` - Proceed the dialog to the next step
 - `end()` - End dialog
-- `jump($step)` - Jump to the particular step, where `$step` is the method name (method must have `public` visibility)
-- `remember(string $key, mixed $value)` - Remember key-value for next steps. It will available in `Dialog::$memory` array.
 - `isEnd()` - Check the end of the dialog
+- `jump(string $step)` - Jump to the particular step, where `$step` is the `public` method name
+- `remember(string $key, mixed $value)` - Add a new key-value to `Dialog::$memory` array to make this data available on next steps
 
 
 ### Available methods of the _Dialogs_ class
