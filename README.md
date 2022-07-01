@@ -20,6 +20,13 @@ composer require koot-labs/telegram-bot-dialogs
 
 ## Usage
 
+1. Create a Dialog class
+2. [Create a Telegram command](https://telegram-bot-sdk.readme.io/docs/commands-system) and start a Dialog from `Command::handle()`.
+3. Setup your controller class to proceed active Dialog on income webhook request.
+
+
+### 1. Create a Dialog class
+
 Each dialog should be implemented as class that extends basic Dialog as you can see in example bellow:
 
 ```php
@@ -57,6 +64,9 @@ final class HelloDialog extends Dialog
 }
 ```
 
+
+### Create a Telegram command
+
 For initiate new dialog you have to use Dialogs class instance to add new dialog implementation. And for execute the first and next steps you have to call Dialogs::procceed() mehod with update object as an argument. Also it is possible to use dialogs with Telegram commands and DI through type hinting.
 
 ```php
@@ -74,12 +84,16 @@ final class HelloCommand extends Command
 
     public function handle(): void
     {
-        Dialogs::add(new HelloDialog($this->update));
+        Dialogs::activate(new HelloDialog($this->update));
     }
 }
 ```
 
-And process request inside your Laravel webhook controller:
+
+### 3. Setup your controller
+
+Process request inside your Laravel webhook controller:
+
 ```php
 use Telegram\Bot\Api;
 use KootLabs\TelegramBotDialogs\Dialogs;
@@ -92,9 +106,9 @@ final class TelegramWebhookController
 
         $dialogs->exists($update)
             ? $dialogs->proceed($update)
-            : $botsManager->bot('your-bot-name')->sendMessage([
+            : $botsManager->bot('your-bot-name')->sendMessage([ // fallback message
                 'chat_id' => $update->getChat()->id,
-                'text' => 'There is no open dialog',
+                'text' => 'There is no active dialogs at this moment.',
             ]);
     }
 }
@@ -120,8 +134,7 @@ After that just for users in the list will be allowed to start the dialog.
 
 ### Available methods of the _Dialogs_ class
 
-- `add(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Add the new dialog
-- `get(\Telegram\Bot\Objects\Update $update)` - Returns the dialog object for the existing dialog
+- `activate(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Start a new dialog
 - `proceed(\Telegram\Bot\Objects\Update $update)` - Run the next step handler for the existing dialog
 - `exists(\Telegram\Bot\Objects\Update $update)` - Check for existing dialog
 

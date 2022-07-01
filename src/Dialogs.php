@@ -20,21 +20,17 @@ final class Dialogs
         $this->redis = $redis;
     }
 
+    /** @deprecated Please use \KootLabs\TelegramBotDialogs\Dialogs::activate() instead. It will be removed in v0.4.0 */
     public function add(Dialog $dialog): Dialog
     {
-        $dialog->setTelegram($this->telegram);
-        $this->storeDialogState($dialog);
-
+        $this->activate($dialog);
         return $dialog;
     }
 
-    private function storeDialogState(Dialog $dialog): void
+    public function activate(Dialog $dialog): void
     {
-        $chatId = $dialog->getChat()->id;
-
-        $this->setDialogData($chatId, 'class', get_class($dialog), $dialog->ttl());
-        $this->setDialogData($chatId, 'next', $dialog->getNext(), $dialog->ttl());
-        $this->setDialogData($chatId, 'memory', serialize($dialog->getMemory()), $dialog->ttl());
+        $dialog->setTelegram($this->telegram);
+        $this->storeDialogState($dialog);
     }
 
     private function getDialogInstance(Update $update): ?Dialog
@@ -94,6 +90,15 @@ final class Dialogs
     {
         $chatId = $update->getMessage()->chat->id;
         return (bool) $this->redis->exists(self::REDIS_PREFIX.$chatId);
+    }
+
+    private function storeDialogState(Dialog $dialog): void
+    {
+        $chatId = $dialog->getChat()->id;
+
+        $this->setDialogData($chatId, 'class', get_class($dialog), $dialog->ttl());
+        $this->setDialogData($chatId, 'next', $dialog->getNext(), $dialog->ttl());
+        $this->setDialogData($chatId, 'memory', serialize($dialog->getMemory()), $dialog->ttl());
     }
 
     private function setDialogData(int $chatId, string $field, mixed $value, int $ttl): void

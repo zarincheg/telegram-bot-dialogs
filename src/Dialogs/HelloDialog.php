@@ -4,7 +4,10 @@ namespace KootLabs\TelegramBotDialogs\Dialogs;
 
 use KootLabs\TelegramBotDialogs\Dialog;
 
-/** An example of Dialog class for demo purposes. */
+/**
+ * An example of Dialog class for demo purposes.
+ * @internal
+ */
 final class HelloDialog extends Dialog
 {
     protected array $steps = ['hello', 'fine', 'bye'];

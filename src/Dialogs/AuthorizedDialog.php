@@ -6,14 +6,17 @@ use KootLabs\TelegramBotDialogs\Dialog;
 use KootLabs\TelegramBotDialogs\Exceptions\DialogException;
 use Telegram\Bot\Objects\Update;
 
+/**
+ * An example of Dialog class for demo purposes.
+ * @internal
+ */
 abstract class AuthorizedDialog extends Dialog
 {
     protected array $allowedUsers = [];
 
     /**
      * @todo Replace basic Exception by the specific
-     * @param Update $update
-     * @throws DialogException
+     * @throws \KootLabs\TelegramBotDialogs\Exceptions\DialogException
      */
     public function __construct(Update $update)
     {

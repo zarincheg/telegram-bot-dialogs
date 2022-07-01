@@ -165,6 +165,7 @@ abstract class Dialog
     /**
      * @return bool
      * @throws \KootLabs\TelegramBotDialogs\Exceptions\DialogException
+     * @throws \Telegram\Bot\Exceptions\TelegramSDKException
      */
     public function __call(string $name, array $args)
     {
