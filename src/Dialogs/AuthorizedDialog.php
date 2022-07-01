@@ -1,25 +1,14 @@
-<?php
-/**
- * Created by Kirill Zorin <zarincheg@gmail.com>
- * Personal website: http://libdev.ru
- *
- * Date: 29.06.2016
- * Time: 17:09
- */
+<?php declare(strict_types=1);
 
-namespace BotDialogs\Dialogs;
+namespace KootLabs\TelegramBotDialogs\Dialogs;
 
-use BotDialogs\Dialog;
-use BotDialogs\Exceptions\DialogException;
+use KootLabs\TelegramBotDialogs\Dialog;
+use KootLabs\TelegramBotDialogs\Exceptions\DialogException;
 use Telegram\Bot\Objects\Update;
 
-/**
- * Class AuthorizedDialog
- * @package GreenzoBot\Telegram\Dialogs
- */
-class AuthorizedDialog extends Dialog
+abstract class AuthorizedDialog extends Dialog
 {
-    protected $allowedUsers = [];
+    protected array $allowedUsers = [];
 
     /**
      * @todo Replace basic Exception by the specific
@@ -30,7 +19,7 @@ class AuthorizedDialog extends Dialog
     {
         $username = $update->getMessage()->getFrom()->getUsername();
 
-        if (!$username || !in_array($username, $this->allowedUsers)) {
+        if (!$username || !in_array($username, $this->allowedUsers, true)) {
             throw new DialogException('You have no access to start this dialog');
         }
 

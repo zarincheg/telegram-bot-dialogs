@@ -1,80 +1,70 @@
-<?php
-/**
- * Created by Kirill Zorin <zarincheg@gmail.com>
- * Personal website: http://libdev.ru
- *
- * Date: 13.06.2016
- * Time: 13:55
- */
+<?php declare(strict_types=1);
 
-namespace BotDialogs;
+namespace KootLabs\TelegramBotDialogs;
 
-use Predis\Client as Redis;
+use Illuminate\Redis\RedisManager;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Update;
 
-/**
- * Class Dialogs
- * @package BotDialogs
- */
-class Dialogs
+final class Dialogs
 {
-    /**
-     * @var Api
-     */
-    protected $telegram;
+    private const REDIS_PREFIX = 'tg_dialog_';
 
-    /**
-     * @var Redis
-     */
-    protected $redis;
+    private Api $telegram;
 
-    /**
-     * @param Api $telegram
-     * @param Redis $redis
-     */
-    public function __construct(Api $telegram, Redis $redis)
+    private RedisManager $redis;
+
+    public function __construct(Api $telegram, RedisManager $redis)
     {
         $this->telegram = $telegram;
         $this->redis = $redis;
     }
-    /**
-     * @param Dialog $dialog
-     * @return Dialog
-     */
-    public function add(Dialog $dialog)
+
+    public function add(Dialog $dialog): Dialog
     {
         $dialog->setTelegram($this->telegram);
-
-        // save new dialog
-        $chatId = $dialog->getChat()->getId();
-        $this->setField($chatId, 'next', $dialog->getNext());
-        $this->setField($chatId, 'dialog', get_class($dialog));
-        // @todo It's not safe. Need to define Dialogs registry with check of bindings
+        $this->storeDialogState($dialog);
 
         return $dialog;
     }
 
-    /**
-     * @param Update $update
-     * @return Dialog|false
-     * @internal param $chatId
-     */
-    public function get(Update $update)
+    private function storeDialogState(Dialog $dialog): void
     {
-        $chatId = $update->getMessage()->getChat()->getId();
-        $redis = $this->redis;
+        $chatId = $dialog->getChat()->id;
 
-        if (!$redis->exists($chatId)) {
-            return false;
+        $this->setDialogData($chatId, 'class', get_class($dialog), $dialog->ttl());
+        $this->setDialogData($chatId, 'next', $dialog->getNext(), $dialog->ttl());
+        $this->setDialogData($chatId, 'memory', serialize($dialog->getMemory()), $dialog->ttl());
+    }
+
+    private function getDialogInstance(Update $update): ?Dialog
+    {
+        if (! $this->exists($update)) {
+            return null;
         }
 
-        $next = $redis->hget($chatId, 'next');
-        $name = $redis->hget($chatId, 'dialog');
-        $memory = $redis->hget($chatId, 'memory');
+        $message = $update->getMessage();
+        assert($message instanceof \Telegram\Bot\Objects\Message);
+        $chatId = $message->chat->id;
 
-        /** @var Dialog $dialog */
-        $dialog = new $name($update); // @todo look at the todo above about code safety
+        $next = $this->getDialogData($chatId, 'next');
+        if (! is_numeric($next)) {
+            throw new \RuntimeException('Unexpected $next type');  // debug
+        }
+
+        $next = (int) $next;
+
+        /** @var class-string<\KootLabs\TelegramBotDialogs\Dialog> $dialogFQCN */
+        $dialogFQCN = $this->getDialogData($chatId, 'class');
+        if (! class_exists($dialogFQCN)) {
+            throw new \RuntimeException("Dialog class “{$dialogFQCN}” does not exist.");
+        }
+
+        $memory = unserialize($this->getDialogData($chatId, 'memory'), ['allowed_classes' => true]);
+        assert(is_array($memory));
+
+        /** @var \KootLabs\TelegramBotDialogs\Dialog $dialog */
+        $dialog = new $dialogFQCN($update);
         $dialog->setTelegram($this->telegram);
         $dialog->setNext($next);
         $dialog->setMemory($memory);
@@ -82,55 +72,44 @@ class Dialogs
         return $dialog;
     }
 
-    /**
-     * @param Update $update
-     */
-    public function proceed(Update $update)
+    /** Run next step of the active Dialog. */
+    public function proceed(Update $update): void
     {
-        $dialog = self::get($update);
-
-        if (!$dialog) {
+        $dialog = $this->getDialogInstance($update);
+        if ($dialog === null) {
             return;
         }
-        $chatId = $dialog->getChat()->getId();
+
+        $chatId = $dialog->getChat()->id;
         $dialog->proceed();
 
         if ($dialog->isEnd()) {
-            $this->redis->del($chatId);
+            $this->redis->del(self::REDIS_PREFIX.$chatId);
         } else {
-            $this->setField($chatId, 'next', $dialog->getNext());
-            $this->setField($chatId, 'memory', $dialog->getMemory());
+            $this->storeDialogState($dialog);
         }
     }
 
-    /**
-     * @param Update $update
-     * @return bool
-     */
-    public function exists(Update $update)
+    public function exists(Update $update): bool
     {
-        if (!$this->redis->exists($update->getMessage()->getChat()->getId())) {
-            return false;
-        }
-
-        return true;
+        $chatId = $update->getMessage()->chat->id;
+        return (bool) $this->redis->exists(self::REDIS_PREFIX.$chatId);
     }
 
-    /**
-     * @param string $key
-     * @param string $field
-     * @param mixed $value
-     */
-    protected function setField($key, $field, $value)
+    private function setDialogData(int $chatId, string $field, mixed $value, int $ttl): void
     {
         $redis = $this->redis;
 
         $redis->multi();
 
-        $redis->hset($key, $field, $value);
-        // @todo Move to config/settings
-        $redis->expire($key, 300);
+        $redis->hset(self::REDIS_PREFIX.$chatId, $field, $value);
+        $redis->expire(self::REDIS_PREFIX.$chatId, $ttl);
 
         $redis->exec();
+    }
+
+    private function getDialogData(int $chatId, string $field): mixed
+    {
+        return $this->redis->hget(self::REDIS_PREFIX.$chatId, $field);
     }
 }

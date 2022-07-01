@@ -1,48 +1,32 @@
-<?php
-/**
- * Created by Kirill Zorin <zarincheg@gmail.com>
- * Personal website: http://libdev.ru
- *
- * Date: 18.06.2016
- * Time: 16:45
- */
-namespace BotDialogs\Laravel;
+<?php declare(strict_types=1);
+
+namespace KootLabs\TelegramBotDialogs\Laravel;
 
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
-use BotDialogs\Dialogs;
+use KootLabs\TelegramBotDialogs\Dialogs;
 
-/**
- * Class DialogsServiceProvider
- * @package BotDialogs\Laravel
- */
-class DialogsServiceProvider extends ServiceProvider
+class DialogsServiceProvider extends ServiceProvider implements DeferrableProvider
 {
-
-    /**
-     * Register the service provider.
-     *
-     * @return void
-     */
-    public function register()
+    /** @inheritDoc */
+    public function register(): void
     {
-        $this->app->singleton(Dialogs::class, function ($app) {
-            /** @var Container $app */
-            return new Dialogs($app->make('telegram'), $app->make('redis'));
+        $this->app->singleton(Dialogs::class, static function (Container $app): Dialogs {
+            return new Dialogs($app->make('telegram.bot'), $app->make('redis'));
         });
 
         $this->mergeConfigFrom(__DIR__.'/config/dialogs.php', 'dialogs');
 
-        $this->app->alias(Dialogs::class, 'dialogs');
+        $this->app->alias(Dialogs::class, 'telegram.dialogs');
     }
 
     /**
-     * Get the services provided by the provider.
-     *
-     * @return array
+     * @inheritDoc
+     * @return list<string>
      */
-    public function provides()
+    public function provides(): array
     {
-        return ['dialogs', Dialogs::class];
+        return ['telegram.dialogs', Dialogs::class];
     }
 }
