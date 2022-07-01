@@ -65,7 +65,7 @@ final class HelloDialog extends Dialog
 ```
 
 
-### Create a Telegram command
+### 2. Create a Telegram command
 
 For initiate new dialog you have to use Dialogs class instance to add new dialog implementation. And for execute the first and next steps you have to call Dialogs::procceed() mehod with update object as an argument. Also it is possible to use dialogs with Telegram commands and DI through type hinting.
 
@@ -114,12 +114,6 @@ final class TelegramWebhookController
 }
 ```
 For storing dialog information (also for the data that pushed by the `Dialog::remember()` method) using Redis.
-
-
-### Access control with in dialogs
-
-You can inherit AuthorizedDialog class and put Telegram usernames into `$allowedUsers` property.
-After that just for users in the list will be allowed to start the dialog.
 
 
 ### Available methods of the _Dialog_ class

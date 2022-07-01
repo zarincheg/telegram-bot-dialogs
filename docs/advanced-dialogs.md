@@ -87,3 +87,11 @@ final class HelloDialog extends \KootLabs\TelegramBotDialogs\DichotomousDialog
     ];
 }
 ```
+
+
+## Access control with in dialogs
+
+⚠️ Note! This conception will be removed or re-implemented in further versions (with breaking compatibility changes).
+
+You can inherit `\KootLabs\TelegramBotDialogs\Dialogs\AuthorizedDialog` class and put Telegram usernames into `$allowedUsers` property.
+After that just for users in the list will be allowed to start the dialog.
