@@ -128,9 +128,9 @@ For storing dialog information (also for the data that pushed by the `Dialog::re
 
 ### Available methods of the _Dialogs_ class
 
-- `activate(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Start a new dialog
-- `proceed(\Telegram\Bot\Objects\Update $update)` - Run the next step handler for the existing dialog
-- `exists(\Telegram\Bot\Objects\Update $update)` - Check for existing dialog
+- `activate(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Activate a new Dialog (to start it - call `proceed()`)
+- `proceed(\Telegram\Bot\Objects\Update $update)` - Run the next step handler for the existing Dialog
+- `exists(\Telegram\Bot\Objects\Update $update)` - Check for existing Dialog
 
 
 ## ToDo
