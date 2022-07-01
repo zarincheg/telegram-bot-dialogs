@@ -1,5 +1,11 @@
 # telegram-bot-dialogs
-The extension for [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk) that allows to implement dialogs for telegram bots.
+The extension for [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk) v3+ that allows to implement dialogs for telegram bots.
+
+## About this fork
+
+The goal of the fork is to maintain the package compatibale with latest [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk), PHP 8+ and Laravel features, focus on stability, better DX and readability.
+
+
 
 ## Installation
 You can easily install the package using Composer:
@@ -198,6 +204,6 @@ You can inherit AuthorizedDialog class and put Telegram usernames into $allowedU
 
 
 ## ToDo
+- Add tests
 - Refactor for using names in Dialogs::add() instead of objects and rename to start()
-- Add LUIS API support (https://www.luis.ai/)
-- Long-term memory
+- Add AI API support (e.g. [LUIS](https://www.luis.ai/), [Dataflow](https://cloud.google.com/dataflow))
