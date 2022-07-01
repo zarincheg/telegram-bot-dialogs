@@ -1,6 +1,6 @@
 # Dialogs plugin for Telegram Bot API PHP SDK
 
-The extension for [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk) v3+ that allows to implement dialogs for telegram bots.
+The extension for [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk) v3.1+ that allows to implement dialogs for telegram bots.
 
 
 ## About this fork

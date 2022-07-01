@@ -1,9 +1,25 @@
 {
     "name": "koot-labs/telegram-bot-dialogs",
     "description": "Telegram Bot API PHP SDK extension that allows to implement dialogs in bots",
-    "type": "library",
-    "homepage": "https://github.com/koot-labs/telegram-bot-dialogs",
     "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "telegram-dialog",
+        "telegram",
+        "laravel"
+    ],
+    "homepage": "https://github.com/koot-labs/telegram-bot-dialogs",
+    "require": {
+        "php": ">=8.0",
+        "illuminate/support": "^5.5 || ^6.0 || ^7.0 || ^8.0 || ^9.0",
+        "irazasyed/telegram-bot-sdk": "^3.1",
+        "predis/predis": "^1.0 || ^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5 || ^10.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "KootLabs\\TelegramBotDialogs\\": "src/"
@@ -14,17 +30,11 @@
             "KootLabs\\TelegramBotDialogs\\Tests\\": "tests/"
         }
     },
-    "require": {
-        "php": ">=8.0",
-        "illuminate/support": "^5.5 || ^6.0 || ^7.0 || ^8.0 || ^9.0",
-        "irazasyed/telegram-bot-sdk": "^3.1",
-        "predis/predis": "^1.0 || ^2.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "10.0.x-dev"
-    },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "ergebnis/composer-normalize": false
+        }
     },
     "extra": {
         "laravel": {
@@ -32,6 +42,5 @@
                 "KootLabs\\TelegramBotDialogs\\Laravel\\DialogsServiceProvider"
             ]
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
