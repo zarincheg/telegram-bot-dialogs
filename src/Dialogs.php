@@ -4,6 +4,7 @@ namespace KootLabs\TelegramBotDialogs;
 
 use Illuminate\Redis\RedisManager;
 use Telegram\Bot\Api;
+use Telegram\Bot\Objects\Message;
 use Telegram\Bot\Objects\Update;
 
 final class Dialogs
@@ -88,8 +89,9 @@ final class Dialogs
 
     public function exists(Update $update): bool
     {
-        $chatId = $update->getMessage()->chat->id;
-        return (bool) $this->redis->exists(self::REDIS_PREFIX.$chatId);
+        $message = $update->getMessage();
+        $chatId = $message instanceof Message ? $message->chat->id : null;
+        return $chatId && $this->redis->exists(self::REDIS_PREFIX.$chatId);
     }
 
     private function storeDialogState(Dialog $dialog): void
