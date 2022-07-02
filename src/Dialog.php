@@ -28,13 +28,10 @@ abstract class Dialog
         $this->update = $update;
     }
 
-    /** @param int|numeric-string $next */
-    final public function setNext(int | string $next): void
+    /** @param positive-int $next Step index. */
+    final public function setNext(int $next): void
     {
-        if (! is_numeric($next)) {
-            throw new \RuntimeException("Unexpected Next value: $next; type: ".get_debug_type($next));
-        }
-        $this->next = (int) $next;
+        $this->next = $next;
     }
 
     final public function getNext(): int
