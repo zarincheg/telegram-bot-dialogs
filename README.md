@@ -135,7 +135,6 @@ final class TelegramWebhookController
 ## ToDo
 
 - Add tests
-- Refactor for using names in Dialogs::add() instead of objects and rename to start()
 - Add AI API support (e.g. [LUIS](https://www.luis.ai/), [Dataflow](https://cloud.google.com/dataflow))
 - Make package fully Laravel-independent
 - Improve documentation and examples
