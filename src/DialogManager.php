@@ -9,27 +9,27 @@ use Telegram\Bot\Objects\Update;
 
 final class DialogManager
 {
-    private Api $telegram;
+    private Api $bot;
 
     private Store $store;
 
-    public function __construct(Api $telegram, Store $store)
+    public function __construct(Api $bot, Store $store)
     {
-        $this->telegram = $telegram;
+        $this->bot = $bot;
         $this->store = $store;
     }
 
     public function activate(Dialog $dialog, Update $update): void
     {
         $dialog->setUpdate($update);
-        $dialog->setTelegram($this->telegram);
+        $dialog->setBot($this->bot);
         $this->storeDialogState($dialog);
     }
 
     /** Use non-default Bot for API calls */
     public function setBot(Api $bot): void
     {
-        $this->telegram = $bot;
+        $this->bot = $bot;
     }
 
     private function getDialogInstance(Update $update): ?Dialog
@@ -44,7 +44,7 @@ final class DialogManager
 
         $dialog = $this->readDialogState($chatId);
         $dialog->setUpdate($update);
-        $dialog->setTelegram($this->telegram);
+        $dialog->setBot($this->bot);
 
         return $dialog;
     }

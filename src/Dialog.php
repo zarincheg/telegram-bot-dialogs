@@ -10,7 +10,7 @@ use Telegram\Bot\Objects\Update;
 
 abstract class Dialog
 {
-    protected Api $telegram;
+    protected Api $bot;
     protected Update $update;
     protected array $memory = [];
 
@@ -39,9 +39,9 @@ abstract class Dialog
         $this->update = $update;
     }
 
-    final public function setTelegram(Api $telegram): void
+    final public function setBot(Api $bot): void
     {
-        $this->telegram = $telegram;
+        $this->bot = $bot;
     }
 
     /** Start dialog from the begging. */
@@ -62,7 +62,7 @@ abstract class Dialog
         if ($this->isEnd()) {
             return;
         }
-        $this->telegram->sendChatAction([
+        $this->bot->sendChatAction([
             'chat_id' => $this->getChat()->id,
             'action' => Actions::TYPING,
         ]);
@@ -152,7 +152,7 @@ abstract class Dialog
                 $params = array_merge($params, $stepConfig['options']);
             }
 
-            $this->telegram->sendMessage($params);
+            $this->bot->sendMessage($params);
         }
 
         if (!empty($stepConfig['jump'])) {

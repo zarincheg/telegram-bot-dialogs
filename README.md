@@ -41,7 +41,7 @@ final class HelloDialog extends Dialog
 
     public function hello()
     {
-        $this->telegram->sendMessage([
+        $this->bot->sendMessage([
             'chat_id' => $this->getChat()->id,
             'text' => 'Hello! How are you?',
         ]);
@@ -49,7 +49,7 @@ final class HelloDialog extends Dialog
 
     public function fine()
     {
-        $this->telegram->sendMessage([
+        $this->bot->sendMessage([
             'chat_id' => $this->getChat()->id,
             'text' => "I'm OK :)",
         ]);
@@ -57,7 +57,7 @@ final class HelloDialog extends Dialog
 
     public function bye()
     {
-        $this->telegram->sendMessage([
+        $this->bot->sendMessage([
             'chat_id' => $this->getChat()->id,
             'text' => 'Bye!',
         ]);
