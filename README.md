@@ -117,7 +117,7 @@ final class TelegramWebhookController
 }
 ```
 
-### Available methods of the _Dialog_ class
+### `Dialog` class API
 
 - `start()` - Start the dialog from the first step
 - `proceed()` - Proceed the dialog to the next step
@@ -127,7 +127,9 @@ final class TelegramWebhookController
 - `remember(string $key, mixed $value)` - Add a new key-value to `Dialog::$memory` array to make this data available on next steps
 
 
-### Available methods of the _Dialogs_ class
+### `DialogManager` class API
+
+ℹ️ _Dialogs_ [Facade](https://laravel.com/docs/master/facades) proxies calls to _DialogManager_ class.
 
 - `activate(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Activate a new Dialog (to start it - call `proceed()`)
 - `proceed(\Telegram\Bot\Objects\Update $update)` - Run the next step handler for the existing Dialog
