@@ -2,8 +2,7 @@
 
 namespace KootLabs\TelegramBotDialogs;
 
-use KootLabs\TelegramBotDialogs\Exceptions\DialogException;
-use Telegram\Bot\Actions;
+use KootLabs\TelegramBotDialogs\Exceptions\InvalidDialogStep;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Chat;
 use Telegram\Bot\Objects\Update;
@@ -52,7 +51,7 @@ abstract class Dialog
     }
 
     /**
-     * @throws \KootLabs\TelegramBotDialogs\Exceptions\DialogException
+     * @throws \KootLabs\TelegramBotDialogs\Exceptions\InvalidDialogStep
      * @throws \Telegram\Bot\Exceptions\TelegramSDKException
      */
     final public function proceed(): void
@@ -62,25 +61,21 @@ abstract class Dialog
         if ($this->isEnd()) {
             return;
         }
-        $this->bot->sendChatAction([
-            'chat_id' => $this->getChat()->id,
-            'action' => Actions::TYPING,
-        ]);
 
-        $step = $this->steps[$this->current];
+        $stepNameOrConfig = $this->steps[$this->current];
 
-        if (is_array($step)) {
-            $this->proceedConfiguredStep($step);
-        } elseif (is_string($step)) {
-            $stepMethodName = $step;
+        if (is_array($stepNameOrConfig)) {
+            $this->proceedConfiguredStep($stepNameOrConfig);
+        } elseif (is_string($stepNameOrConfig)) {
+            $stepMethodName = $stepNameOrConfig;
 
             if (! method_exists($this, $stepMethodName)) {
-                throw new DialogException(sprintf('Public method “%s::%s()” is not available.', $this::class, $stepMethodName));
+                throw new InvalidDialogStep(sprintf('Public method “%s::%s()” is not available.', $this::class, $stepMethodName));
             }
 
             $this->$stepMethodName();
         } else {
-            throw new DialogException('Dialog step is not defined.');
+            throw new InvalidDialogStep('Unknown format of the step.');
         }
 
         // Step forward only if did not change inside the step handler
@@ -134,12 +129,12 @@ abstract class Dialog
 
     /**
      * @throws \Telegram\Bot\Exceptions\TelegramSDKException
-     * @throws \KootLabs\TelegramBotDialogs\Exceptions\DialogException
+     * @throws \KootLabs\TelegramBotDialogs\Exceptions\InvalidDialogStep
      */
     private function proceedConfiguredStep(array $stepConfig): void
     {
         if (!isset($stepConfig['name'])) {
-            throw new DialogException('Dialog step name must be defined.');
+            throw new InvalidDialogStep('Configurable Dialog step does not contain required “name” value.');
         }
 
         if (isset($stepConfig['response'])) {
@@ -164,6 +159,7 @@ abstract class Dialog
         }
     }
 
+    /** @return array<string, mixed> */
     public function __serialize(): array
     {
         return [

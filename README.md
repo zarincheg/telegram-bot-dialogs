@@ -141,5 +141,4 @@ final class TelegramWebhookController
 
 - Add tests
 - Add AI API support (e.g. [LUIS](https://www.luis.ai/), [Dataflow](https://cloud.google.com/dataflow))
-- Make package fully Laravel-independent
 - Improve documentation and examples
