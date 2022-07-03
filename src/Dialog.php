@@ -75,7 +75,7 @@ abstract class Dialog
             return;
         }
         $this->telegram->sendChatAction([
-            'chat_id' => $this->update->getMessage()->getChat()->id,
+            'chat_id' => $this->getChat()->id,
             'action' => Actions::TYPING,
         ]);
 
@@ -156,7 +156,12 @@ abstract class Dialog
     /** Returns Telegram Chat */
     final public function getChat(): Chat
     {
-        return $this->update->getMessage()->getChat();
+        return $this->update->getMessage()->chat;
+    }
+
+    final public function ttl(): int
+    {
+        return $this->ttl;
     }
 
     /**
@@ -198,10 +203,5 @@ abstract class Dialog
         }
 
         return true;
-    }
-
-    final public function ttl(): int
-    {
-        return $this->ttl;
     }
 }
