@@ -75,7 +75,7 @@ abstract class Dialog
             return;
         }
         $this->telegram->sendChatAction([
-            'chat_id' => $this->update->getMessage()->getChat()->getId(),
+            'chat_id' => $this->update->getMessage()->getChat()->id,
             'action' => Actions::TYPING,
         ]);
 
@@ -110,12 +110,12 @@ abstract class Dialog
         }
 
         if (! method_exists($this, $stepName)) {
-            throw new \RuntimeException("Method “{$stepName}” is not available at the Dialog ".$this::class);
+            throw new \RuntimeException(sprintf("Public method “%s::%s()” is not available.", $this::class, $stepName));
         }
 
         $this->$stepName($step);
 
-        // Step forward only if did not changes inside the step handler
+        // Step forward only if did not change inside the step handler
         if ($this->next === $this->current) {
             ++$this->next;
         }
@@ -176,15 +176,14 @@ abstract class Dialog
             throw new DialogException('For string steps method must be defined.');
         }
 
-        // @todo Add logging
         if (isset($step['response'])) {
             $params = [
-                'chat_id' => $this->getChat()->getId(),
+                'chat_id' => $this->getChat()->id,
                 'text' => $step['response'],
             ];
 
-            if (isset($step['markdown']) && $step['markdown']) {
-                $params['parse_mode'] = 'Markdown';
+            if (!empty($step['options'])) {
+                $params = array_merge($params, $step['options']);
             }
 
             $this->telegram->sendMessage($params);
@@ -194,7 +193,7 @@ abstract class Dialog
             $this->jump($step['jump']);
         }
 
-        if (isset($step['end']) && $step['end']) {
+        if (isset($step['end']) && $step['end'] === true) {
             $this->end();
         }
 

@@ -10,7 +10,8 @@ final class HelloDialog extends Dialog
     protected array $steps = [
         [
             'name' => 'hello',
-            'response' => 'Hello my friend!'
+            'response' => 'Hello my friend!',
+            'options' => ['parse_mode' => 'html'], // optional
         ],
         'fine',
         'bye',
