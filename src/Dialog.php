@@ -82,38 +82,18 @@ abstract class Dialog
         $step = $this->steps[$this->current];
 
         if (is_array($step)) {
-            if (!isset($step['name'])) {
-                throw new DialogException('Dialog step name must be defined.');
+            $this->proceedConfiguredStep($step);
+        } elseif (is_string($step)) {
+            $stepMethodName = $step;
+
+            if (! method_exists($this, $stepMethodName)) {
+                throw new DialogException(sprintf('Public method “%s::%s()” is not available.', $this::class, $stepMethodName));
             }
 
-            $stepName = $step['name'];
-        } elseif (is_string($step)) {
-            $stepName = $step;
+            $this->$stepMethodName();
         } else {
             throw new DialogException('Dialog step is not defined.');
         }
-
-        if (is_array($step)) {
-            if ($this instanceof DichotomousDialog) {
-                // Flush yes/no state
-                $this->yes = null;
-                $this->no = null;
-            }
-
-            if ($this instanceof DichotomousDialog && isset($step['is_dichotomous']) && $step['is_dichotomous'] && $this->processYesNo($step)) {
-                return;
-            }
-
-            if (!empty($step['jump'])) {
-                $this->jump($step['jump']);
-            }
-        }
-
-        if (! method_exists($this, $stepName)) {
-            throw new \RuntimeException(sprintf("Public method “%s::%s()” is not available.", $this::class, $stepName));
-        }
-
-        $this->$stepName($step);
 
         // Step forward only if did not change inside the step handler
         if ($this->next === $this->current) {
@@ -165,42 +145,36 @@ abstract class Dialog
     }
 
     /**
-     * @return bool
-     * @throws \KootLabs\TelegramBotDialogs\Exceptions\DialogException
      * @throws \Telegram\Bot\Exceptions\TelegramSDKException
+     * @throws \KootLabs\TelegramBotDialogs\Exceptions\DialogException
      */
-    public function __call(string $name, array $args)
+    private function proceedConfiguredStep(array $stepConfig): void
     {
-        if (count($args) === 0) {
-            return false;
+        if (!isset($stepConfig['name'])) {
+            throw new DialogException('Dialog step name must be defined.');
         }
 
-        $step = $args[0];
-
-        if (!is_array($step)) {
-            throw new DialogException('For string steps method must be defined.');
-        }
-
-        if (isset($step['response'])) {
+        if (isset($stepConfig['response'])) {
             $params = [
                 'chat_id' => $this->getChat()->id,
-                'text' => $step['response'],
+                'text' => $stepConfig['response'],
             ];
 
-            if (!empty($step['options'])) {
-                $params = array_merge($params, $step['options']);
+            if (!empty($stepConfig['options'])) {
+                $params = array_merge($params, $stepConfig['options']);
             }
 
             $this->telegram->sendMessage($params);
         }
 
-        if (!empty($step['jump'])) {
-            $this->jump($step['jump']);
+        if (!empty($stepConfig['jump'])) {
+            $this->jump($stepConfig['jump']);
         }
 
-        if (isset($step['end']) && $step['end'] === true) {
+        if (isset($stepConfig['end']) && $stepConfig['end'] === true) {
             $this->end();
         }
+    }
 
         return true;
     }
