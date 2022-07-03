@@ -2,36 +2,28 @@
 
 namespace KootLabs\TelegramBotDialogs;
 
-use Illuminate\Redis\RedisManager;
+use KootLabs\TelegramBotDialogs\Storages\Store;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Message;
 use Telegram\Bot\Objects\Update;
 
 final class DialogManager
 {
-    private const REDIS_PREFIX = 'tg_dialog_';
-
     private Api $telegram;
 
-    private RedisManager $redis;
+    private Store $store;
 
-    public function __construct(Api $telegram, RedisManager $redis)
+    public function __construct(Api $telegram, Store $store)
     {
         $this->telegram = $telegram;
-        $this->redis = $redis;
+        $this->store = $store;
     }
 
-    /** @deprecated Please use \KootLabs\TelegramBotDialogs\Dialogs::activate() instead. It will be removed in v0.4.0 */
-    public function add(Dialog $dialog): Dialog
+    public function activate(Dialog $dialog, Update $update): void
     {
-        $this->activate($dialog);
-        return $dialog;
-    }
-
-    public function activate(Dialog $dialog): void
-    {
+        $dialog->setUpdate($update);
         $dialog->setTelegram($this->telegram);
-        $this->storeDialogState($dialog);
+        $this->rememberDialogState($dialog);
     }
 
     /** Use non-default Bot for API calls */
@@ -50,24 +42,9 @@ final class DialogManager
         assert($message instanceof \Telegram\Bot\Objects\Message);
         $chatId = $message->chat->id;
 
-        $next = $this->getDialogData($chatId, 'next');
-
-        $next = (int) $next;
-
-        /** @var class-string<\KootLabs\TelegramBotDialogs\Dialog> $dialogFQCN */
-        $dialogFQCN = $this->getDialogData($chatId, 'class');
-        if (! is_string($dialogFQCN) || ! class_exists($dialogFQCN)) {
-            throw new \RuntimeException("Dialog class “{$dialogFQCN}” does not exist.");
-        }
-
-        $memory = unserialize($this->getDialogData($chatId, 'memory'), ['allowed_classes' => true]);
-        assert(is_array($memory));
-
-        /** @var \KootLabs\TelegramBotDialogs\Dialog $dialog */
-        $dialog = new $dialogFQCN($update);
+        $dialog = $this->readDialogState($chatId);
+        $dialog->setUpdate($update);
         $dialog->setTelegram($this->telegram);
-        $dialog->setNext($next);
-        $dialog->setMemory($memory);
 
         return $dialog;
     }
@@ -84,9 +61,9 @@ final class DialogManager
         $dialog->proceed();
 
         if ($dialog->isEnd()) {
-            $this->redis->del($this->decorateKey($chatId));
+            $this->store->delete($chatId);
         } else {
-            $this->storeDialogState($dialog);
+            $this->rememberDialogState($dialog);
         }
     }
 
@@ -95,40 +72,19 @@ final class DialogManager
     {
         $message = $update->getMessage();
         $chatId = $message instanceof Message ? $message->chat->id : null;
-        return $chatId && $this->redis->exists($this->decorateKey($chatId));
+        return $chatId && $this->store->has($chatId);
     }
 
     /** Store all Dialog fields. */
-    private function storeDialogState(Dialog $dialog): void
+    private function rememberDialogState(Dialog $dialog): void
     {
         $chatId = $dialog->getChat()->id;
-
-        $this->setDialogData($chatId, 'class', get_class($dialog), $dialog->ttl());
-        $this->setDialogData($chatId, 'next', $dialog->getNext(), $dialog->ttl());
-        $this->setDialogData($chatId, 'memory', serialize($dialog->getMemory()), $dialog->ttl());
+        $this->store->set($chatId, $dialog, $dialog->ttl());
     }
 
-    /** Set a Dialog field. */
-    private function setDialogData(int $chatId, string $field, mixed $value, int $ttl): void
+    /** Restore Dialog. */
+    private function readDialogState(int $chatId): Dialog
     {
-        $redis = $this->redis;
-
-        $redis->multi();
-
-        $redis->hset($this->decorateKey($chatId), $field, $value);
-        $redis->expire($this->decorateKey($chatId), $ttl);
-
-        $redis->exec();
-    }
-
-    /** Get a Dialog field. */
-    private function getDialogData(int $chatId, string $field): mixed
-    {
-        return $this->redis->hget($this->decorateKey($chatId), $field);
-    }
-
-    private function decorateKey(string | int $key): string
-    {
-        return self::REDIS_PREFIX.$key;
+        return $this->store->get($chatId);
     }
 }

@@ -23,11 +23,6 @@ abstract class Dialog
     protected int $next = 0;
     protected int $current = 0;
 
-    public function __construct(Update $update)
-    {
-        $this->update = $update;
-    }
-
     /** @param positive-int $next Step index. */
     final public function setNext(int $next): void
     {
@@ -37,6 +32,11 @@ abstract class Dialog
     final public function getNext(): int
     {
         return $this->next;
+    }
+
+    final public function setUpdate(Update $update): void
+    {
+        $this->update = $update;
     }
 
     final public function setTelegram(Api $telegram): void
@@ -176,6 +176,11 @@ abstract class Dialog
         }
     }
 
-        return true;
+    public function __serialize(): array
+    {
+        return [
+            'next' => $this->next,
+            'memory' => $this->memory,
+        ];
     }
 }
