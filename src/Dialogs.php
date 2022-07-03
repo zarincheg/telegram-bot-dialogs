@@ -45,9 +45,6 @@ final class Dialogs
         $chatId = $message->chat->id;
 
         $next = $this->getDialogData($chatId, 'next');
-        if (! is_numeric($next)) {
-            throw new \RuntimeException('Unexpected $next type');  // debug
-        }
 
         $next = (int) $next;
 
@@ -87,6 +84,7 @@ final class Dialogs
         }
     }
 
+    /** Whether Dialog exist for a given Update. */
     public function exists(Update $update): bool
     {
         $message = $update->getMessage();
@@ -94,6 +92,7 @@ final class Dialogs
         return $chatId && $this->redis->exists(self::REDIS_PREFIX.$chatId);
     }
 
+    /** Store all Dialog fields. */
     private function storeDialogState(Dialog $dialog): void
     {
         $chatId = $dialog->getChat()->id;
@@ -103,6 +102,7 @@ final class Dialogs
         $this->setDialogData($chatId, 'memory', serialize($dialog->getMemory()), $dialog->ttl());
     }
 
+    /** Set a Dialog field. */
     private function setDialogData(int $chatId, string $field, mixed $value, int $ttl): void
     {
         $redis = $this->redis;
@@ -115,6 +115,7 @@ final class Dialogs
         $redis->exec();
     }
 
+    /** Get a Dialog field. */
     private function getDialogData(int $chatId, string $field): mixed
     {
         return $this->redis->hget(self::REDIS_PREFIX.$chatId, $field);
