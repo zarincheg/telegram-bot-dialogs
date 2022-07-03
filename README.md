@@ -42,7 +42,7 @@ final class HelloDialog extends Dialog
     public function hello()
     {
         $this->telegram->sendMessage([
-            'chat_id' => $this->getChat()->getId(),
+            'chat_id' => $this->getChat()->id,
             'text' => 'Hello! How are you?',
         ]);
     }
@@ -50,7 +50,7 @@ final class HelloDialog extends Dialog
     public function fine()
     {
         $this->telegram->sendMessage([
-            'chat_id' => $this->getChat()->getId(),
+            'chat_id' => $this->getChat()->id,
             'text' => "I'm OK :)",
         ]);
     }
@@ -58,7 +58,7 @@ final class HelloDialog extends Dialog
     public function bye()
     {
         $this->telegram->sendMessage([
-            'chat_id' => $this->getChat()->getId(),
+            'chat_id' => $this->getChat()->id,
             'text' => 'Bye!',
         ]);
         $this->jump('hello');
