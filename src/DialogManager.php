@@ -34,6 +34,12 @@ final class DialogManager
         $this->storeDialogState($dialog);
     }
 
+    /** Use non-default Bot for API calls */
+    public function setBot(Api $bot): void
+    {
+        $this->telegram = $bot;
+    }
+
     private function getDialogInstance(Update $update): ?Dialog
     {
         if (! $this->exists($update)) {
