@@ -7,7 +7,7 @@ use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Message;
 use Telegram\Bot\Objects\Update;
 
-final class Dialogs
+final class DialogManager
 {
     private const REDIS_PREFIX = 'tg_dialog_';
 

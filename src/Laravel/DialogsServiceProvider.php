@@ -5,20 +5,20 @@ namespace KootLabs\TelegramBotDialogs\Laravel;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
-use KootLabs\TelegramBotDialogs\Dialogs;
+use KootLabs\TelegramBotDialogs\DialogManager;
 
 class DialogsServiceProvider extends ServiceProvider implements DeferrableProvider
 {
     /** @inheritDoc */
     public function register(): void
     {
-        $this->app->singleton(Dialogs::class, static function (Container $app): Dialogs {
-            return new Dialogs($app->make('telegram.bot'), $app->make('redis'));
+        $this->app->singleton(DialogManager::class, static function (Container $app): DialogManager {
+            return new DialogManager($app->make('telegram.bot'), $app->make('redis'));
         });
 
         $this->mergeConfigFrom(__DIR__.'/config/dialogs.php', 'dialogs');
 
-        $this->app->alias(Dialogs::class, 'telegram.dialogs');
+        $this->app->alias(DialogManager::class, 'telegram.dialogs');
     }
 
     /**
@@ -27,6 +27,6 @@ class DialogsServiceProvider extends ServiceProvider implements DeferrableProvid
      */
     public function provides(): array
     {
-        return ['telegram.dialogs', Dialogs::class];
+        return ['telegram.dialogs', DialogManager::class];
     }
 }

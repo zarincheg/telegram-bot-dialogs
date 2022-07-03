@@ -99,11 +99,11 @@ Process request inside your Laravel webhook controller:
 ```php
 use Telegram\Bot\Api;
 use Telegram\Bot\BotsManager;
-use KootLabs\TelegramBotDialogs\Dialogs;
+use KootLabs\TelegramBotDialogs\DialogManager;
 
 final class TelegramWebhookController
 {
-    public function handle(Api $telegram, Dialogs $dialogs, BotsManager $botsManager): void
+    public function handle(Api $telegram, DialogManager $dialogs, BotsManager $botsManager): void
     {
         $update = $telegram->commandsHandler(true);
 
