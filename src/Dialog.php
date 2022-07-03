@@ -3,6 +3,7 @@
 namespace KootLabs\TelegramBotDialogs;
 
 use KootLabs\TelegramBotDialogs\Exceptions\InvalidDialogStep;
+use KootLabs\TelegramBotDialogs\Exceptions\UnexpectedUpdateType;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\Chat;
 use Telegram\Bot\Objects\Update;
@@ -73,7 +74,11 @@ abstract class Dialog
                 throw new InvalidDialogStep(sprintf('Public method “%s::%s()” is not available.', $this::class, $stepMethodName));
             }
 
-            $this->$stepMethodName();
+            try {
+                $this->$stepMethodName();
+            } catch (UnexpectedUpdateType) {
+                return; // skip moving to the next step
+            }
         } else {
             throw new InvalidDialogStep('Unknown format of the step.');
         }
