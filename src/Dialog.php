@@ -44,18 +44,6 @@ abstract class Dialog
         $this->telegram = $telegram;
     }
 
-    /** @param array<string, mixed> $memory */
-    final public function setMemory(array $memory): void
-    {
-        $this->memory = $memory;
-    }
-
-    /** @return array<string, mixed> */
-    final public function getMemory(): array
-    {
-        return $this->memory;
-    }
-
     /** Start dialog from the begging. */
     final public function start(): void
     {
@@ -102,10 +90,10 @@ abstract class Dialog
     }
 
     /** Jump to the particular step of the dialog */
-    final public function jump(string $step): void
+    final public function jump(string $stepName): void
     {
         foreach ($this->steps as $index => $value) {
-            if ($value === $step || (is_array($value) && $value['name'] === $step)) {
+            if ($value === $stepName || (is_array($value) && $value['name'] === $stepName)) {
                 $this->setNext($index);
                 break;
             }

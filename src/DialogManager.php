@@ -23,7 +23,7 @@ final class DialogManager
     {
         $dialog->setUpdate($update);
         $dialog->setTelegram($this->telegram);
-        $this->rememberDialogState($dialog);
+        $this->storeDialogState($dialog);
     }
 
     /** Use non-default Bot for API calls */
@@ -63,7 +63,7 @@ final class DialogManager
         if ($dialog->isEnd()) {
             $this->store->delete($chatId);
         } else {
-            $this->rememberDialogState($dialog);
+            $this->storeDialogState($dialog);
         }
     }
 
@@ -75,8 +75,8 @@ final class DialogManager
         return $chatId && $this->store->has($chatId);
     }
 
-    /** Store all Dialog fields. */
-    private function rememberDialogState(Dialog $dialog): void
+    /** Store all Dialog. */
+    private function storeDialogState(Dialog $dialog): void
     {
         $chatId = $dialog->getChat()->id;
         $this->store->set($chatId, $dialog, $dialog->ttl());
