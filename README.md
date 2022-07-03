@@ -129,7 +129,7 @@ final class TelegramWebhookController
 
 ### `DialogManager` class API
 
-ℹ️ _Dialogs_ [Facade](https://laravel.com/docs/master/facades) proxies calls to _DialogManager_ class.
+ℹ️ `Dialogs` [Facade](https://laravel.com/docs/master/facades) proxies calls to `DialogManager` class.
 
 - `activate(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Activate a new Dialog (to start it - call `proceed()`)
 - `proceed(\Telegram\Bot\Objects\Update $update)` - Run the next step handler for the existing Dialog

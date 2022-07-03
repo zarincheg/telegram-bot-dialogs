@@ -50,7 +50,7 @@ final class DialogManager
 
         /** @var class-string<\KootLabs\TelegramBotDialogs\Dialog> $dialogFQCN */
         $dialogFQCN = $this->getDialogData($chatId, 'class');
-        if (! class_exists($dialogFQCN)) {
+        if (! is_string($dialogFQCN) || ! class_exists($dialogFQCN)) {
             throw new \RuntimeException("Dialog class “{$dialogFQCN}” does not exist.");
         }
 
@@ -78,7 +78,7 @@ final class DialogManager
         $dialog->proceed();
 
         if ($dialog->isEnd()) {
-            $this->redis->del(self::REDIS_PREFIX.$chatId);
+            $this->redis->del($this->decorateKey($chatId));
         } else {
             $this->storeDialogState($dialog);
         }
@@ -89,7 +89,7 @@ final class DialogManager
     {
         $message = $update->getMessage();
         $chatId = $message instanceof Message ? $message->chat->id : null;
-        return $chatId && $this->redis->exists(self::REDIS_PREFIX.$chatId);
+        return $chatId && $this->redis->exists($this->decorateKey($chatId));
     }
 
     /** Store all Dialog fields. */
@@ -109,8 +109,8 @@ final class DialogManager
 
         $redis->multi();
 
-        $redis->hset(self::REDIS_PREFIX.$chatId, $field, $value);
-        $redis->expire(self::REDIS_PREFIX.$chatId, $ttl);
+        $redis->hset($this->decorateKey($chatId), $field, $value);
+        $redis->expire($this->decorateKey($chatId), $ttl);
 
         $redis->exec();
     }
@@ -118,6 +118,11 @@ final class DialogManager
     /** Get a Dialog field. */
     private function getDialogData(int $chatId, string $field): mixed
     {
-        return $this->redis->hget(self::REDIS_PREFIX.$chatId, $field);
+        return $this->redis->hget($this->decorateKey($chatId), $field);
+    }
+
+    private function decorateKey(string | int $key): string
+    {
+        return self::REDIS_PREFIX.$key;
     }
 }
