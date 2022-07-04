@@ -14,7 +14,7 @@ abstract class Dialog
     protected Update $update;
     protected array $memory = [];
 
-    /** Seconds to store state of the dialog after latest activity on it. */
+    /** Seconds to store state of the Dialog after latest activity on it. */
     protected int $ttl = 300;
 
     /** @var list<string|array<array-key, string|bool>> */
@@ -23,28 +23,37 @@ abstract class Dialog
     protected int $next = 0;
     protected int $current = 0;
 
-    /** @param positive-int $next Step index. */
-    final public function setNext(int $next): void
+    /**
+     * Specify index of the next step to be used on next income message.
+     * @param positive-int $next Step index.
+     */
+    final protected function setNext(int $next): void
     {
         $this->next = $next;
     }
 
+    /**
+     * Get index of the next step.
+     * @deprecated There are no any known use cases. Can be removed.
+     */
     final public function getNext(): int
     {
         return $this->next;
     }
 
+    /** Specify context info for the Dialog. */
     final public function setUpdate(Update $update): void
     {
         $this->update = $update;
     }
 
+    /** Specify bot instance (for multi-bot applications). */
     final public function setBot(Api $bot): void
     {
         $this->bot = $bot;
     }
 
-    /** Start dialog from the begging. */
+    /** Start Dialog from the begging. */
     final public function start(): void
     {
         $this->next = 0;
@@ -89,7 +98,7 @@ abstract class Dialog
         }
     }
 
-    /** Jump to the particular step of the dialog */
+    /** Jump to the particular step of the Dialog. */
     final public function jump(string $stepName): void
     {
         foreach ($this->steps as $index => $value) {
@@ -115,7 +124,7 @@ abstract class Dialog
         $this->memory[$key] = $value;
     }
 
-    /** Check if dialog ended */
+    /** Check if Dialog ended */
     final public function isEnd(): bool
     {
         return $this->next >= count($this->steps);

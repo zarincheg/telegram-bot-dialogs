@@ -123,7 +123,7 @@ final class TelegramWebhookController
 - `proceed()` - Proceed the dialog to the next step
 - `end()` - End dialog
 - `isEnd()` - Check the end of the dialog
-- `jump(string $step)` - Jump to the particular step, where `$step` is the `public` method name
+- `jump(string $stepName)` - Jump to the particular step, where `$step` is the `public` method name
 - `remember(string $key, mixed $value)` - Add a new key-value to `Dialog::$memory` array to make this data available on next steps
 
 
@@ -142,3 +142,4 @@ final class TelegramWebhookController
 - Add tests
 - Add AI API support (e.g. [LUIS](https://www.luis.ai/), [Dataflow](https://cloud.google.com/dataflow))
 - Improve documentation and examples
+- Improve stability and DX for channel bots
