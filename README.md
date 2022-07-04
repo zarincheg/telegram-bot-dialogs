@@ -97,25 +97,29 @@ final class HelloCommand extends Command
 Process request inside your Laravel webhook controller:
 
 ```php
-use Telegram\Bot\Api;
 use Telegram\Bot\BotsManager;
 use KootLabs\TelegramBotDialogs\DialogManager;
 
 final class TelegramWebhookController
 {
-    public function handle(Api $telegram, DialogManager $dialogs, BotsManager $botsManager): void
+    public function handle(DialogManager $dialogs, BotsManager $botsManager): void
     {
-        $update = $telegram->commandsHandler(true);
+        $bot = $botsManager->bot('your-bot-name');
+        $update = $bot->commandsHandler(true);
+
+        // optional, for multi-bot applications only, when a given bot is not a default one
+        $dialogs->setBot($bot);
 
         $dialogs->exists($update)
             ? $dialogs->proceed($update)
             : $botsManager->bot('your-bot-name')->sendMessage([ // fallback message
                 'chat_id' => $update->getChat()->id,
-                'text' => 'There is no active dialogs at this moment.',
+                'text' => 'There is no active dialog at this moment.',
             ]);
     }
 }
 ```
+
 
 ### `Dialog` class API
 
