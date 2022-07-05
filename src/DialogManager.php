@@ -57,11 +57,10 @@ final class DialogManager
             return;
         }
 
-        $chatId = $dialog->getChat()->id;
         $dialog->proceed();
 
         if ($dialog->isEnd()) {
-            $this->store->delete($chatId);
+            $this->store->delete($dialog->getChatId());
         } else {
             $this->storeDialogState($dialog);
         }
@@ -78,8 +77,7 @@ final class DialogManager
     /** Store all Dialog. */
     private function storeDialogState(Dialog $dialog): void
     {
-        $chatId = $dialog->getChat()->id;
-        $this->store->set($chatId, $dialog, $dialog->ttl());
+        $this->store->set($dialog->getChatId(), $dialog, $dialog->ttl());
     }
 
     /** Restore Dialog. */

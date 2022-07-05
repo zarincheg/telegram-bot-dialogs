@@ -47,7 +47,7 @@ final class HelloDialog extends Dialog
     public function hello()
     {
         $this->bot->sendMessage([
-            'chat_id' => $this->getChat()->id,
+            'chat_id' => $this->getChatId(),
             'text' => 'Hello! How are you?',
         ]);
     }
@@ -55,7 +55,7 @@ final class HelloDialog extends Dialog
     public function fine()
     {
         $this->bot->sendMessage([
-            'chat_id' => $this->getChat()->id,
+            'chat_id' => $this->getChatId(),
             'text' => "I'm OK :)",
         ]);
     }
@@ -63,7 +63,7 @@ final class HelloDialog extends Dialog
     public function bye()
     {
         $this->bot->sendMessage([
-            'chat_id' => $this->getChat()->id,
+            'chat_id' => $this->getChatId(),
             'text' => 'Bye!',
         ]);
         $this->jump('hello');
@@ -91,6 +91,7 @@ final class HelloCommand extends Command
 
     public function handle(): void
     {
+        HelloDialog::activate($this->update);
         Dialogs::activate(new HelloDialog(), $this->update);
     }
 }

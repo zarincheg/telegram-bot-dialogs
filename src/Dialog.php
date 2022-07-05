@@ -122,6 +122,13 @@ abstract class Dialog
         return $this->update->getMessage()->chat;
     }
 
+    /** Returns Telegram Chat ID */
+    final public function getChatId(): int
+    {
+        return $this->update->getMessage()->chat->id;
+    }
+
+    /** Get a number of seconds to store state of the Dialog after latest activity on it. */
     final public function ttl(): int
     {
         return $this->ttl;
@@ -139,7 +146,7 @@ abstract class Dialog
 
         if (isset($stepConfig['response'])) {
             $params = [
-                'chat_id' => $this->getChat()->id,
+                'chat_id' => $this->getChatId(),
                 'text' => $stepConfig['response'],
             ];
 
