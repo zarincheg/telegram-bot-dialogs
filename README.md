@@ -136,6 +136,7 @@ final class TelegramWebhookController
 - 🔐 `end()` - End dialog
 - 🔐 `jump(string $stepName)` - Jump to the particular step, where `$step` is the `public` method name
 - 🔐 `remember(string $key, mixed $value)` - Add a new key-value to `Dialog::$memory` array to make this data available on next steps
+- 🔐 `forget(string $key)` - Remove a value from `Dialog::$memory`by key.
 
 
 ### `DialogManager` class API

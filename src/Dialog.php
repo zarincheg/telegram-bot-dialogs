@@ -121,6 +121,12 @@ abstract class Dialog
         $this->memory[$key] = $value;
     }
 
+    /** Forget information from next steps. */
+    final protected function forget(string $key): void
+    {
+        unset($this->memory[$key]);
+    }
+
     /** Check if Dialog ended */
     final public function isEnd(): bool
     {
