@@ -5,48 +5,56 @@ namespace KootLabs\TelegramBotDialogs;
 use KootLabs\TelegramBotDialogs\Exceptions\InvalidDialogStep;
 use KootLabs\TelegramBotDialogs\Exceptions\UnexpectedUpdateType;
 use Telegram\Bot\Api;
-use Telegram\Bot\Objects\Chat;
 use Telegram\Bot\Objects\Update;
 
 abstract class Dialog
 {
-    protected Api $bot;
-    protected Update $update;
+    protected int $chat_id;
+
+    /** @var array<string, mixed> Key-value storage to store data between steps. */
     protected array $memory = [];
+
+    /** @var \Telegram\Bot\Api Associated Bot instance that will reporm API calls. */
+    protected Api $bot;
 
     /** Seconds to store state of the Dialog after latest activity on it. */
     protected int $ttl = 300;
 
-    /** @var list<string|array<array-key, string|bool>> */
+    /** @var list<string|array<array-key, string|bool>> List of steps. */
     protected array $steps = [];
 
     /** @var int Index of the next step. */
     protected int $next = 0;
 
-    /** Specify context info for the Dialog. */
-    final public function setUpdate(Update $update): void
+    public function __construct(int $chatId, Api $bot = null)
     {
-        $this->update = $update;
+        $this->chat_id = $chatId;
+        if ($bot) {
+            $this->bot = $bot;
+        }
     }
 
-    /** Specify bot instance (for multi-bot applications). */
+    /**
+     * Specify bot instance (for multi-bot applications).
+     * @internal DialogManager is the only user of this method.
+     */
     final public function setBot(Api $bot): void
     {
         $this->bot = $bot;
     }
 
     /** Start Dialog from the begging. */
-    final public function start(): void
+    final public function start(Update $update): void
     {
         $this->next = 0;
-        $this->proceed();
+        $this->proceed($update);
     }
 
     /**
      * @throws \KootLabs\TelegramBotDialogs\Exceptions\InvalidDialogStep
      * @throws \Telegram\Bot\Exceptions\TelegramSDKException
      */
-    final public function proceed(): void
+    final public function proceed(Update $update): void
     {
          $currentStepIndex = $this->next;
 
@@ -69,7 +77,7 @@ abstract class Dialog
             }
 
             try {
-                $this->$stepMethodName();
+                $this->$stepMethodName($update);
             } catch (UnexpectedUpdateType) {
                 return; // skip moving to the next step
             }
@@ -116,16 +124,10 @@ abstract class Dialog
         return $this->next >= count($this->steps);
     }
 
-    /** Returns Telegram Chat */
-    final public function getChat(): Chat
-    {
-        return $this->update->getMessage()->chat;
-    }
-
     /** Returns Telegram Chat ID */
     final public function getChatId(): int
     {
-        return $this->update->getMessage()->chat->id;
+        return $this->chat_id;
     }
 
     /** Get a number of seconds to store state of the Dialog after latest activity on it. */
@@ -170,6 +172,7 @@ abstract class Dialog
     public function __serialize(): array
     {
         return [
+            'chat_id' => $this->getChatId(),
             'next' => $this->next,
             'memory' => $this->memory,
         ];

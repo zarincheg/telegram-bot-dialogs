@@ -38,13 +38,14 @@ Each dialog should be implemented as class that extends basic Dialog as you can 
 
 ```php
 use KootLabs\TelegramBotDialogs\Dialog;
+use Telegram\Bot\Objects\Update;
 
 final class HelloDialog extends Dialog
 {
     // List of method to execute. The order defines the sequence.
-    protected array $steps = ['hello', 'fine', 'bye'];
+    protected array $steps = ['sayHello', 'sayOk', 'sayBye'];
 
-    public function hello()
+    public function sayHello(Update $update): void
     {
         $this->bot->sendMessage([
             'chat_id' => $this->getChatId(),
@@ -52,21 +53,21 @@ final class HelloDialog extends Dialog
         ]);
     }
 
-    public function fine()
+    public function sayOk(Update $update): void
     {
         $this->bot->sendMessage([
             'chat_id' => $this->getChatId(),
-            'text' => "I'm OK :)",
+            'text' => "I'm also OK :)",
         ]);
     }
 
-    public function bye()
+    public function sayBye(Update $update): void
     {
         $this->bot->sendMessage([
             'chat_id' => $this->getChatId(),
             'text' => 'Bye!',
         ]);
-        $this->jump('hello');
+        $this->jump('sayHello');
     }
 }
 ```
@@ -129,12 +130,12 @@ final class TelegramWebhookController
 
 ### `Dialog` class API
 
-- `start()` - Start the dialog from the first step
-- `proceed()` - Proceed the dialog to the next step
-- `end()` - End dialog
+- `start(\Telegram\Bot\Objects\Update $update)` - Start the dialog from the first step
+- `proceed(\Telegram\Bot\Objects\Update $update)` - Proceed the dialog to the next step
 - `isEnd()` - Check the end of the dialog
-- `jump(string $stepName)` - Jump to the particular step, where `$step` is the `public` method name
-- `remember(string $key, mixed $value)` - Add a new key-value to `Dialog::$memory` array to make this data available on next steps
+- 🔐 `end()` - End dialog
+- 🔐 `jump(string $stepName)` - Jump to the particular step, where `$step` is the `public` method name
+- 🔐 `remember(string $key, mixed $value)` - Add a new key-value to `Dialog::$memory` array to make this data available on next steps
 
 
 ### `DialogManager` class API

@@ -19,10 +19,8 @@ final class DialogManager
         $this->store = $store;
     }
 
-    public function activate(Dialog $dialog, Update $update): void
+    public function activate(Dialog $dialog): void
     {
-        $dialog->setUpdate($update);
-        $dialog->setBot($this->bot);
         $this->storeDialogState($dialog);
     }
 
@@ -43,7 +41,6 @@ final class DialogManager
         $chatId = $message->chat->id;
 
         $dialog = $this->readDialogState($chatId);
-        $dialog->setUpdate($update);
         $dialog->setBot($this->bot);
 
         return $dialog;
@@ -57,7 +54,7 @@ final class DialogManager
             return;
         }
 
-        $dialog->proceed();
+        $dialog->proceed($update);
 
         if ($dialog->isEnd()) {
             $this->store->delete($dialog->getChatId());
