@@ -99,7 +99,7 @@ abstract class Dialog
     }
 
     /** Jump to the particular step of the Dialog. */
-    final public function jump(string $stepName): void
+    final protected function jump(string $stepName): void
     {
         foreach ($this->steps as $index => $value) {
             if ($value === $stepName || (is_array($value) && $value['name'] === $stepName)) {

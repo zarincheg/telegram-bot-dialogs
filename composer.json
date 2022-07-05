@@ -42,5 +42,8 @@
                 "KootLabs\\TelegramBotDialogs\\Laravel\\DialogsServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }
