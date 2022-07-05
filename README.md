@@ -1,3 +1,6 @@
+[![CI](https://github.com/koot-labs/telegram-bot-dialogs/actions/workflows/ci.yml/badge.svg)](https://github.com/koot-labs/telegram-bot-dialogs/actions/workflows/ci.yml)
+[![Backward compatibility check](https://github.com/koot-labs/telegram-bot-dialogs/actions/workflows/backward-compatibility-check.yml/badge.svg)](https://github.com/koot-labs/telegram-bot-dialogs/actions/workflows/backward-compatibility-check.yml)
+
 <p align="center"><img src="https://user-images.githubusercontent.com/5278175/176997422-79e5c4c1-ff43-438e-b30e-651bb8e17bcf.png" alt="Dialogs" width="400"></p>
 
 # Dialogs plugin for Telegram Bot API PHP SDK
@@ -7,7 +10,7 @@ The extension for [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegr
 
 ## About this fork
 
-Orional package is not maintaned anymore and does not support Telegram Bot API PHP SDK v3.
+Original package is not maintained anymore and does not support Telegram Bot API PHP SDK v3.
 The goal of the fork is to maintain the package compatible with the latest [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk),
 PHP 8+ and Laravel features, focus on stability, better DX and readability.
 
