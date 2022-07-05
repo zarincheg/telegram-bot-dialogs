@@ -26,6 +26,9 @@ abstract class Dialog
     /** @var int Index of the next step. */
     protected int $next = 0;
 
+    /** @var int|null Index of the next step that set manually using jump() method. */
+    private ?int $afterProceedJumpToIndex = null;
+
     public function __construct(int $chatId, Api $bot = null)
     {
         $this->chat_id = $chatId;
@@ -86,8 +89,11 @@ abstract class Dialog
         }
 
         // Step forward only if did not change inside the step handler
-        $hasJumpedIntoAnotherStep = $this->next !== $currentStepIndex;
-        if (! $hasJumpedIntoAnotherStep) {
+        $hasJumpedIntoAnotherStep = $this->afterProceedJumpToIndex !== null;
+        if ($hasJumpedIntoAnotherStep) {
+            $this->next = $this->afterProceedJumpToIndex;
+            $this->afterProceedJumpToIndex = null;
+        } else {
             ++$this->next;
         }
     }
@@ -97,7 +103,7 @@ abstract class Dialog
     {
         foreach ($this->steps as $index => $value) {
             if ($value === $stepName || (is_array($value) && $value['name'] === $stepName)) {
-                $this->next = $index;
+                $this->afterProceedJumpToIndex = $index;
                 break;
             }
         }
