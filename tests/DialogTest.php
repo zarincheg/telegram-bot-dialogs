@@ -95,4 +95,25 @@ final class DialogTest extends TestCase
         $dialog->proceed($this->buildUpdateOfRandomType());
         $dialog->proceed($this->buildUpdateOfRandomType());
     }
+
+    /** @test */
+    public function it_can_rejump_to_the_same_step(): void
+    {
+        $dialog = new class (self::RANDOM_CHAT_ID) extends Dialog {
+            public int $count = 0;
+            protected array $steps = ['step1'];
+
+            public function step1()
+            {
+                ++$this->count;
+                $this->jump('step1');
+            }
+        };
+
+        $dialog->proceed($this->buildUpdateOfRandomType());
+        $dialog->proceed($this->buildUpdateOfRandomType());
+        $dialog->proceed($this->buildUpdateOfRandomType());
+
+        $this->assertSame(3, $dialog->count);
+    }
 }
