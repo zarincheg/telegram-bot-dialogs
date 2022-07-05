@@ -20,26 +20,8 @@ abstract class Dialog
     /** @var list<string|array<array-key, string|bool>> */
     protected array $steps = [];
 
+    /** @var int Index of the next step. */
     protected int $next = 0;
-    protected int $current = 0;
-
-    /**
-     * Specify index of the next step to be used on next income message.
-     * @param positive-int $next Step index.
-     */
-    final protected function setNext(int $next): void
-    {
-        $this->next = $next;
-    }
-
-    /**
-     * Get index of the next step.
-     * @deprecated There are no any known use cases. Can be removed.
-     */
-    final public function getNext(): int
-    {
-        return $this->next;
-    }
 
     /** Specify context info for the Dialog. */
     final public function setUpdate(Update $update): void
@@ -66,13 +48,16 @@ abstract class Dialog
      */
     final public function proceed(): void
     {
-        $this->current = $this->next;
+         $currentStepIndex = $this->next;
 
         if ($this->isEnd()) {
             return;
         }
 
-        $stepNameOrConfig = $this->steps[$this->current];
+        if (! array_key_exists($currentStepIndex, $this->steps)) {
+            throw new InvalidDialogStep("Undefined step with index $currentStepIndex.");
+        }
+        $stepNameOrConfig = $this->steps[$currentStepIndex];
 
         if (is_array($stepNameOrConfig)) {
             $this->proceedConfiguredStep($stepNameOrConfig);
@@ -93,7 +78,8 @@ abstract class Dialog
         }
 
         // Step forward only if did not change inside the step handler
-        if ($this->next === $this->current) {
+        $hasJumpedIntoAnotherStep = $this->next !== $currentStepIndex;
+        if (! $hasJumpedIntoAnotherStep) {
             ++$this->next;
         }
     }
@@ -103,7 +89,7 @@ abstract class Dialog
     {
         foreach ($this->steps as $index => $value) {
             if ($value === $stepName || (is_array($value) && $value['name'] === $stepName)) {
-                $this->setNext($index);
+                $this->next = $index;
                 break;
             }
         }
@@ -119,7 +105,7 @@ abstract class Dialog
     }
 
     /** Remember information for next steps. */
-    final public function remember(string $key, mixed $value): void
+    final protected function remember(string $key, mixed $value): void
     {
         $this->memory[$key] = $value;
     }
