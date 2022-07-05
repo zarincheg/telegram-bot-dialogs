@@ -71,7 +71,7 @@ abstract class Dialog
         $stepNameOrConfig = $this->steps[$currentStepIndex];
 
         if (is_array($stepNameOrConfig)) {
-            $this->proceedConfiguredStep($stepNameOrConfig);
+            $this->proceedConfiguredStep($stepNameOrConfig, $update, $currentStepIndex);
         } elseif (is_string($stepNameOrConfig)) {
             $stepMethodName = $stepNameOrConfig;
 
@@ -80,7 +80,9 @@ abstract class Dialog
             }
 
             try {
+                $this->beforeEveryStep($update, $currentStepIndex);
                 $this->$stepMethodName($update);
+                $this->afterEveryStep($update, $currentStepIndex);
             } catch (UnexpectedUpdateType) {
                 return; // skip moving to the next step
             }
@@ -96,6 +98,18 @@ abstract class Dialog
         } else {
             ++$this->next;
         }
+    }
+
+    /** @experimental Run code before every step. */
+    protected function beforeEveryStep(Update $update, int $step): void
+    {
+        // override the method to add your logic here
+    }
+
+    /** @experimental Run code after every step. */
+    protected function afterEveryStep(Update $update, int $step): void
+    {
+        // override the method to add your logic here
     }
 
     /** Jump to the particular step of the Dialog. */
@@ -149,11 +163,13 @@ abstract class Dialog
      * @throws \Telegram\Bot\Exceptions\TelegramSDKException
      * @throws \KootLabs\TelegramBotDialogs\Exceptions\InvalidDialogStep
      */
-    private function proceedConfiguredStep(array $stepConfig): void
+    private function proceedConfiguredStep(array $stepConfig, Update $update, int $currentStepIndex): void
     {
         if (!isset($stepConfig['name'])) {
             throw new InvalidDialogStep('Configurable Dialog step does not contain required “name” value.');
         }
+
+        $this->beforeEveryStep($update, $currentStepIndex);
 
         if (isset($stepConfig['response'])) {
             $params = [
@@ -171,6 +187,8 @@ abstract class Dialog
         if (!empty($stepConfig['jump'])) {
             $this->jump($stepConfig['jump']);
         }
+
+        $this->afterEveryStep($update, $currentStepIndex);
 
         if (isset($stepConfig['end']) && $stepConfig['end'] === true) {
             $this->end();
