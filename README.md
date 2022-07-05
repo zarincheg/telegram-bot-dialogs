@@ -34,7 +34,7 @@ Package requires PHP >= 8.0
 
 ### 1. Create a Dialog class
 
-Each dialog should be implemented as class that extends basic Dialog as you can see in example bellow:
+Each dialog should be implemented as class that extends basic `Dialog` as you can see in [HelloExampleDialog](https://github.com/koot-labs/telegram-bot-dialogs/blob/master/src/Dialogs/HelloExampleDialog.php) or the code bellow:
 
 ```php
 use KootLabs\TelegramBotDialogs\Dialog;
