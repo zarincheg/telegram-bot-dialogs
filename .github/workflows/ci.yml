@@ -5,14 +5,14 @@ on:
   push:
     paths:
       - 'src/**'
-      - 'test/**'
+      - 'tests/**'
       - 'composer.*'
       - 'phpunit.xml.dist'
       - '.github/workflows/ci.yml'
   pull_request:
     paths:
       - 'src/**'
-      - 'test/**'
+      - 'tests/**'
       - 'composer.*'
       - 'phpunit.xml.dist'
       - '.github/workflows/ci.yml'
