@@ -24,10 +24,3 @@ In this case, if you don't need any logic inside the step handler - you can don'
 
 Also, you can control dialog direction in step by defining `jump ` and `end` fields. `jump` acts as `jump()` method - dialog jumps to particular step. `end` field, is set to `true`, ends dialog after current step.
 
-
-## Access control with in dialogs
-
-⚠️ Note! This conception will be removed or re-implemented in further versions (with breaking compatibility changes).
-
-You can inherit `\KootLabs\TelegramBotDialogs\Dialogs\AuthorizedDialog` class and put Telegram usernames into `$allowedUsers` property.
-After that just for users in the list will be allowed to start the dialog.
