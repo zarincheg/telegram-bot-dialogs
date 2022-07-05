@@ -103,10 +103,7 @@ abstract class Dialog
         }
     }
 
-    /**
-     * @todo Maybe the better way is that to return true/false from step-methods.
-     * @todo ...And if it returns false - it means end of dialog
-     */
+    /** Move Dialog’s cursor to the end. */
     final public function end(): void
     {
         $this->next = count($this->steps);
