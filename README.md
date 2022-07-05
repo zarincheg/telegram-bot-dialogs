@@ -7,6 +7,7 @@ The extension for [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegr
 
 ## About this fork
 
+Orional package is not maintaned anymore and does not support Telegram Bot API PHP SDK v3.
 The goal of the fork is to maintain the package compatible with the latest [Telegram Bot API PHP SDK](https://github.com/irazasyed/telegram-bot-sdk),
 PHP 8+ and Laravel features, focus on stability, better DX and readability.
 
@@ -18,6 +19,7 @@ You can easily install the package using Composer:
 ```shell
 composer require koot-labs/telegram-bot-dialogs
 ```
+Package requires PHP >= 8.0
 
 
 ## Usage
@@ -147,3 +149,16 @@ final class TelegramWebhookController
 - Add AI API support (e.g. [LUIS](https://www.luis.ai/), [Dataflow](https://cloud.google.com/dataflow))
 - Improve documentation and examples
 - Improve stability and DX for channel bots
+
+
+## Backward compatibility promise
+
+Dialogs is using [Semver](https://semver.org/). This means that versions are tagged with MAJOR.MINOR.PATCH.
+Only a new major version will be allowed to break backward compatibility (BC).
+
+Classes marked as `@experimental` or `@internal` are not included in our backward compatibility promise.
+You are also not guaranteed that the value returned from a method is always the same.
+You are guaranteed that the data type will not change.
+
+PHP 8 introduced [named arguments](https://wiki.php.net/rfc/named_params), which increased the cost and reduces flexibility for package maintainers.
+The names of the arguments for methods in Dialogs is not included in our BC promise.
