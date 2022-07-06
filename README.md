@@ -78,7 +78,7 @@ final class HelloDialog extends Dialog
 For initiate new dialog you have to use Dialogs class instance to add new dialog implementation. And for execute the first and next steps you have to call Dialogs::procceed() mehod with update object as an argument. Also it is possible to use dialogs with Telegram commands and DI through type hinting.
 
 ```php
-use App\Dialogs\HelloDialog;
+use App\Dialogs\HelloExampleDialog;
 use KootLabs\TelegramBotDialogs\Laravel\Facades\Dialogs;
 use Telegram\Bot\Commands\Command;
 
@@ -92,8 +92,8 @@ final class HelloCommand extends Command
 
     public function handle(): void
     {
-        HelloDialog::activate($this->update);
-        Dialogs::activate(new HelloDialog(), $this->update);
+        $bot = $this->getTelegram();
+        Dialogs::activate(new HelloExampleDialog($this->update->getChat()->id, $bot));
     }
 }
 ```
