@@ -75,8 +75,8 @@ final class HelloDialog extends Dialog
 
 ### 2. Create a Telegram command
 
-To initiate new dialog you have to use `DialogManager` class instance (or `Dialogs` Laravel Facade) to add new dialog implementation.
-And for execute the first and next steps you have to call `Dialogs::procceed()` method with update object as an argument.
+To initiate a dialog please use `DialogManager` (or, if you use Laravel, `Dialogs` Facade) — it will care about storing and recovering `Dialog` instance state between steps/requests.
+To execute the first and next steps please call `Dialogs::procceed()` method with update object as an argument.
 Also, it is possible to use dialogs with Telegram commands and DI through type hinting.
 
 ```php
@@ -161,7 +161,7 @@ final class TelegramWebhookController
 
 ## Backward compatibility promise
 
-Dialogs package is using [Semver 2.0](https://semver.org/). This means that versions are tagged with MAJOR.MINOR.PATCH.
+Dialogs package uses [Semver 2.0](https://semver.org/). This means that versions are tagged with MAJOR.MINOR.PATCH.
 Only a new major version will be allowed to break backward compatibility (BC).
 
 Classes marked as `@experimental` or `@internal` are not included in our backward compatibility promise.
