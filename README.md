@@ -75,7 +75,9 @@ final class HelloDialog extends Dialog
 
 ### 2. Create a Telegram command
 
-For initiate new dialog you have to use Dialogs class instance to add new dialog implementation. And for execute the first and next steps you have to call Dialogs::procceed() mehod with update object as an argument. Also it is possible to use dialogs with Telegram commands and DI through type hinting.
+To initiate new dialog you have to use `DialogManager` class instance (or `Dialogs` Laravel Facade) to add new dialog implementation.
+And for execute the first and next steps you have to call `Dialogs::procceed()` method with update object as an argument.
+Also, it is possible to use dialogs with Telegram commands and DI through type hinting.
 
 ```php
 use App\Dialogs\HelloExampleDialog;
@@ -144,22 +146,22 @@ final class TelegramWebhookController
 ℹ️ `Dialogs` [Facade](https://laravel.com/docs/master/facades) proxies calls to `DialogManager` class.
 
 - `setBot(\Telegram\Bot\Api $bot)` - Use non-default Bot for API calls
-- `activate(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Activate a new Dialog (to start it - call `proceed()`)
+- `activate(\KootLabs\TelegramBotDialogs\Dialog $dialog)` - Activate a new Dialog (without running it)
 - `proceed(\Telegram\Bot\Objects\Update $update)` - Run the next step handler for the existing Dialog
 - `exists(\Telegram\Bot\Objects\Update $update)` - Check for existing Dialog
 
 
 ## ToDo
 
-- Add tests
 - Add AI API support (e.g. [LUIS](https://www.luis.ai/), [Dataflow](https://cloud.google.com/dataflow))
 - Improve documentation and examples
 - Improve stability and DX for channel bots
+- Improve test coverage
 
 
 ## Backward compatibility promise
 
-Dialogs is using [Semver](https://semver.org/). This means that versions are tagged with MAJOR.MINOR.PATCH.
+Dialogs package is using [Semver 2.0](https://semver.org/). This means that versions are tagged with MAJOR.MINOR.PATCH.
 Only a new major version will be allowed to break backward compatibility (BC).
 
 Classes marked as `@experimental` or `@internal` are not included in our backward compatibility promise.
