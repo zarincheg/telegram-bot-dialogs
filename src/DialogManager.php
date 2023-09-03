@@ -68,6 +68,7 @@ final class DialogManager
 
         if ($dialog->isEnd()) {
             $this->store->delete($dialog->getChatId());
+            $dialog->proceed($update);
         } else {
             $this->storeDialogState($dialog);
         }
