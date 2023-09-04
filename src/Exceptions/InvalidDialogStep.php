@@ -2,6 +2,6 @@
 
 namespace KootLabs\TelegramBotDialogs\Exceptions;
 
-interface DialogException
+final class InvalidDialogStep extends \LogicException implements DialogException
 {
 }
