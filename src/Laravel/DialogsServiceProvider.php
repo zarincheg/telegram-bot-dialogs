@@ -1,48 +1,60 @@
-<?php
-/**
- * Created by Kirill Zorin <zarincheg@gmail.com>
- * Personal website: http://libdev.ru
- *
- * Date: 18.06.2016
- * Time: 16:45
- */
-namespace BotDialogs\Laravel;
+<?php declare(strict_types=1);
+
+namespace KootLabs\TelegramBotDialogs\Laravel;
 
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
-use BotDialogs\Dialogs;
+use KootLabs\TelegramBotDialogs\DialogManager;
+use KootLabs\TelegramBotDialogs\Laravel\Stores\RedisStoreAdapter;
+use KootLabs\TelegramBotDialogs\Storages\Store;
 
-/**
- * Class DialogsServiceProvider
- * @package BotDialogs\Laravel
- */
-class DialogsServiceProvider extends ServiceProvider
+final class DialogsServiceProvider extends ServiceProvider implements DeferrableProvider
 {
-
-    /**
-     * Register the service provider.
-     *
-     * @return void
-     */
-    public function register()
+    /** @inheritDoc */
+    public function register(): void
     {
-        $this->app->singleton(Dialogs::class, function ($app) {
-            /** @var Container $app */
-            return new Dialogs($app->make('telegram'), $app->make('redis'));
+        $this->mergeConfigFrom(__DIR__.'/config/telegramdialogs.php', 'telegramdialogs');
+
+        $this->offerPublishing();
+        $this->registerBindings();
+    }
+
+    /** Setup the resource publishing groups. */
+    private function offerPublishing(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/config/telegramdialogs.php' => config_path('telegramdialogs.php'),
+            ], 'telegram-config');
+        }
+    }
+
+    private function registerBindings(): void
+    {
+        $this->app->singleton(Store::class, static function (Container $app): Store {
+            $config = $app->get('config');
+            $connection = $app->make('redis')->connection($config->get('telegramdialogs.stores.redis.connection'));
+            return new RedisStoreAdapter($connection);
         });
 
-        $this->mergeConfigFrom(__DIR__.'/config/dialogs.php', 'dialogs');
+        $this->app->singleton(DialogManager::class, static function (Container $app): DialogManager {
+            return new DialogManager($app->make('telegram.bot'), $app->make(Store::class));
+        });
 
-        $this->app->alias(Dialogs::class, 'dialogs');
+        $this->app->alias(DialogManager::class, 'telegram.dialogs');
     }
 
     /**
-     * Get the services provided by the provider.
-     *
-     * @return array
+     * @inheritDoc
+     * @return list<string>
      */
-    public function provides()
+    public function provides(): array
     {
-        return ['dialogs', Dialogs::class];
+        return [
+            'telegram.dialogs',
+            DialogManager::class,
+            Store::class,
+        ];
     }
 }

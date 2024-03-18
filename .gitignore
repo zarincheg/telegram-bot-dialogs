@@ -1,7 +1,6 @@
-.idea
-/bootstrap/compiled.php
-.env.*.php
-.env.php
-.env
+# composer
 vendor
+composer.lock
 
+# phpunit
+.phpunit.cache
